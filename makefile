@@ -10,10 +10,8 @@ CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 
 # Locations: -------------------------------------------------------------------
 PROJECTROOT := $(shell pwd)
-BUILDSCRIPTDIR := $(PROJECTROOT)/build/Centos7
 SRCDIR := $(PROJECTROOT)/src
-BUILDDIR := $(PROJECTROOT)/bin
-PKGDIR := $(PROJECTROOT)/pkg
+BUILDDIR := $(PROJECTROOT)/build/$(CPU_ARCH)
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -27,31 +25,28 @@ SHELL := /bin/sh
 .ONESHELL:
 .NOTPARALLEL:
 .SUFFIXES:
-.PHONY: compile cover build clean info
+.PHONY: compile build clean info
 
 $(BUILDDIR):
-	mkdir $(BUILDDIR)
-
-# Main executable depends on source files.
-$(BUILDDIR)/$(EXECNAME): $(BUILDDIR) $(SRCDIR)/$(PACKAGENAME)/*.go
+	mkdir -p $(BUILDDIR)
 
 # The compile target depends on the main executable.
 # 'make compile' builds the executable, which is placed in <build_dir>.
-compile: $(BUILDDIR)/$(EXECNAME)
-	GOPATH=$(PROJECTROOT):$(SCANNERSDIR):$(DOCKERDIR):$(UTILITIESDIR):$(RESTDIR) go install $(PACKAGENAME)
+compile:
+	cargo build
 
-build: compile
+build: compile $(BUILDDIR)
 	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
-	. $BUILDDIR/common/env.sh
-	cp bin/$(EXECNAME) $BUILDDIR/Centos7
-	pushd build/Centos7
-	executable=$(EXECNAME) sudo docker build --tag=$ImageName $BUILDDIR/Centos7
+	if [ -z $ImageName ] then echo "ImageName not set"; exit 1; fi
+	cp target/debug/$(EXECNAME) $BUILDDIR
+	executable=$(EXECNAME) sudo docker build --tag=$ImageName $BUILDDIR
 	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
 	sudo docker push $ImageName
 	sudo docker logout
 
 clean:
-	rm -r -f $(BUILDDIR)/$(PACKAGENAME)
+	rm -r -f $(BUILDDIR)/$(EXECNAME)
+	rm -r -f target/debug/*
 
 info:
 	@echo "Makefile for $(PRODUCTNAME)"
