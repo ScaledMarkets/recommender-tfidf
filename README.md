@@ -21,6 +21,6 @@ recommend(attributes: []string)
 
 * Deploy SOLR and recommender microservice.
 * Train recommender: 
-** Define schema.
-** Create core, and add documents.
+	* Define schema.
+	* Create core, and add documents.
 
