@@ -1,5 +1,12 @@
 // BDD testing:
 // https://github.com/acmcarther/cucumber
+// http://www.solrtutorial.com/solrj-tutorial.html
+// https://lucene.apache.org/solr/6_6_0/solr-core/index.html
+// https://lucene.apache.org/solr/guide/6_6/index.html
+
+
+
+
 
 
 fn main() {
