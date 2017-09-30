@@ -1,4 +1,4 @@
-# recommender-tfidf
+# What this is
 Basic TF-IDF recommender
 
 The recomender microservice takes a vector of attributes, and provides URLs of
