@@ -1,0 +1,9 @@
+version: '3'
+services:
+  solr:
+    container_name: solr
+    depends_on:
+    image: solr
+    ports:
+    volumes:
+    links:
