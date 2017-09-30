@@ -1,0 +1,6 @@
+[package]
+name = "recommender-tfidf"
+version = "0.1.0"
+authors = ["Cliff Berg <cliff@cliffberg.com>"]
+
+[dependencies]
