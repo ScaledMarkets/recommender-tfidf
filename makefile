@@ -45,7 +45,7 @@ build: compile
 	. $BUILDDIR/common/env.sh
 	cp bin/$(EXECNAME) $BUILDDIR/Centos7
 	pushd build/Centos7
-	sudo docker build --tag=$ImageName $BUILDDIR/Centos7
+	executable=$(EXECNAME) sudo docker build --tag=$ImageName $BUILDDIR/Centos7
 	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
 	sudo docker push $ImageName
 	sudo docker logout
