@@ -6,9 +6,17 @@ BUILD := 1234
 PACKAGENAME := recommender_tfidf
 EXECNAME := $(PACKAGENAME)
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
+export maxerrs = 5
 
+# References: ------------------------------------------------------------------
+
+# http://www.solrtutorial.com/solrj-tutorial.html
+# https://lucene.apache.org/solr/6_6_0/solr-core/index.html
+# https://lucene.apache.org/solr/guide/6_6/index.html
 
 # Locations: -------------------------------------------------------------------
+include makefile.inc
+
 PROJECTROOT := $(shell pwd)
 SRCDIR := $(PROJECTROOT)/src
 BUILDDIR := $(PROJECTROOT)/build/$(CPU_ARCH)
@@ -17,7 +25,13 @@ BUILDDIR := $(PROJECTROOT)/build/$(CPU_ARCH)
 SHELL := /bin/sh
 
 
-# Tasks: ----------------------------------------------------------------
+# Java dependencies: -----------------------------------------------------------
+
+CLASSPATH := $(SOLR_HOME)/dist/*
+CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
+
+
+# Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: build
 .PHONY: all compile clean info
@@ -26,6 +40,8 @@ SHELL := /bin/sh
 .NOTPARALLEL:
 .SUFFIXES:
 .PHONY: compile build clean info
+.DELETE_ON_ERROR:
+
 
 $(BUILDDIR):
 	mkdir -p $(BUILDDIR)
