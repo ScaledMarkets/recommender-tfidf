@@ -12,7 +12,7 @@ main_class := scaledmarkets.recommenders.solr.SolrSearcher
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 POP_JAR_NAME := $(PROJECTNAME)-pop.jar
 SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
-PopImageNae := scaledmarkets/$(PROJECTNAME)-pop
+PopImageName := scaledmarkets/$(PROJECTNAME)-pop
 SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 
 # References: ------------------------------------------------------------------
@@ -25,8 +25,10 @@ SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 
 PROJECTROOT := $(shell pwd)
 JAVASRCDIR := $(PROJECTROOT)/java
-POPBUILDDIR := $(PROJECTROOT)/java/pop
-SEARCHBUILDDIR := $(PROJECTROOT)/java/search
+POPJAVABUILDDIR := $(PROJECTROOT)/java/pop
+SEARCHJAVABUILDDIR := $(PROJECTROOT)/java/search
+POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
+SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -39,7 +41,7 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: build
-.PHONY: all compile clean info
+.PHONY: compile compilejava pop_jar search_jar buildpopulator buildsearcher clean info
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
@@ -47,10 +49,21 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
 
-# Compile both the Populator and Search Java files.
-compilejava:
-	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(JAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/*.java
+compile: compilepop compilesearch
+
+$(POPJAVABUILDDIR):
+	mkdir -p $(POPJAVABUILDDIR)
+
+compilepop: $(POPJAVABUILDDIR)
+	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(POPJAVABUILDDIR) \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrjPopulator.java
+
+$(SEARCHJAVABUILDDIR):
+	mkdir -p $(SEARCHJAVABUILDDIR)
+
+compilesearch: $(SEARCHJAVABUILDDIR)
+	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(SEARCHJAVABUILDDIR) \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
 
 # Create the directory into which the jars will be created.
 $(jar_dir):
@@ -58,61 +71,61 @@ $(jar_dir):
 
 # Create the Populator jar.
 
-pop_jar: $(jar_dir)/$(POP_JAR_NAME).jar
+pop_jar: $(jar_dir)/$(POP_JAR_NAME)
 
-$(jar_dir)/$(POP_JAR_NAME).jar: pop_manifest compilejava $(jar_dir)
+$(jar_dir)/$(POP_JAR_NAME): compilejava $(jar_dir)
 	echo "Main-Class: $(pop_main_class)" > PopManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Populator" >> PopManifest
 	echo "Specification-Version: $(VERSION)" >> PopManifest
 	echo "Specification-Vendor: $(ORG)" >> PopManifest
 	echo "Implementation-Title: $(pop_main_class)" >> PopManifest
 	echo "Implementation-Vendor: $(ORG)" >> PopManifest
-	$(JAR) cfm $(jar_dir)/$(POP_JAR_NAME).jar PopManifest \
-		-C $(POPBUILDDIR) scaledmarkets
+	jar cfm $(jar_dir)/$(POP_JAR_NAME) PopManifest \
+		-C $(POPJAVABUILDDIR) scaledmarkets
 	rm PopManifest
 
 # Create the Search jar.
 
-search_jar: $(jar_dir)/$(SEARCH_JAR_NAME).jar
+search_jar: $(jar_dir)/$(SEARCH_JAR_NAME)
 
-$(jar_dir)/$(SEARCH_JAR_NAME).jar: search_manifest compilejava $(jar_dir)
+$(jar_dir)/$(SEARCH_JAR_NAME): compilejava $(jar_dir)
 	echo "Main-Class: $(search_main_class)" > SearchManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> SearchManifest
 	echo "Specification-Version: $(VERSION)" >> SearchManifest
 	echo "Specification-Vendor: $(ORG)" >> SearchManifest
 	echo "Implementation-Title: $(search_main_class)" >> SearchManifest
 	echo "Implementation-Vendor: $(ORG)" >> SearchManifest
-	$(JAR) cfm $(jar_dir)/$(SEARCH_JAR_NAME).jar SearchManifest \
-		-C $(SEARCHBUILDDIR) scaledmarkets
+	jar cfm $(jar_dir)/$(SEARCH_JAR_NAME) SearchManifest \
+		-C $(SEARCHJAVABUILDDIR) scaledmarkets
 	rm SearchManifest
 
 # Build the Populator container image.
 
-$(POPBUILDDIR):
-	mkdir -p $(POPBUILDDIR)
+$(POPIMAGEBUILDDIR):
+	mkdir -p $(POPIMAGEBUILDDIR)
 
-buildpopulator: compilejava $(POPBUILDDIR) pop_jar
-	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
-	cp $(jar_dir)/$(POP_JAR_NAME) $(POPBUILDDIR)
-	PROJECTNAME=$(PROJECTNAME) POP_JAR_NAME=$(POP_JAR_NAME) sudo docker build \
-		--tag=$PopImageName $POPBUILDDIR
-	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
-	sudo docker push $PopImageName
-	sudo docker logout
+popimage: compilejava $(POPIMAGEBUILDDIR) pop_jar
+	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
+	cp $(jar_dir)/$(POP_JAR_NAME) $(POPIMAGEBUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) POP_JAR_NAME=$(POP_JAR_NAME) docker build \
+		--tag=$(PopImageName) $(POPIMAGEBUILDDIR)
+	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
+	docker push $(PopImageName)
+	docker logout
 
 # Build the Search container image.
 
-$(SEARCHBUILDDIR):
-	mkdir -p $(SEARCHBUILDDIR)
+$(SEARCHIMAGEBUILDDIR):
+	mkdir -p $(SEARCHIMAGEBUILDDIR)
 
-buildsearcher: compilejava $(SEARCHBUILDDIR) search_jar
-	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
-	cp $(jar_dir)/$(SEARCH_JAR_NAME) $(SEARCHBUILDDIR)
-	PROJECTNAME=$(PROJECTNAME) SEARCH_JAR_NAME=$(SEARCH_JAR_NAME) sudo docker build \
-		--tag=$SearchImageName $SEARCHBUILDDIR
-	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
-	sudo docker push $PopImageName
-	sudo docker logout
+searchimage: compilejava $(SEARCHIMAGEBUILDDIR) search_jar
+	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
+	cp $(jar_dir)/$(SEARCH_JAR_NAME) $(SEARCHIMAGEBUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) SEARCH_JAR_NAME=$(SEARCH_JAR_NAME) docker build \
+		--tag=$(SearchImageName) $(SEARCHIMAGEBUILDDIR)
+	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
+	docker push $(SearchImageName)
+	docker logout
 
 # Housekeeping.
 
