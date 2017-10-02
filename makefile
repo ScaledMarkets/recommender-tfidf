@@ -3,10 +3,11 @@ PRODUCTNAME := TF-IDF Recommender
 ORG := Scaled Markets
 VERSION := 1.0
 BUILD := 1234
-PACKAGENAME := recommender_tfidf
-EXECNAME := $(PACKAGENAME)
+PROJECTNAME := recommender_tfidf
+task_main_class := scaledmarkets.recommenders.solr.SolrSearcher
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export maxerrs = 5
+JAR_NAME := $(PROJECTNAME).jar
 
 # References: ------------------------------------------------------------------
 
@@ -18,8 +19,8 @@ export maxerrs = 5
 include makefile.inc
 
 PROJECTROOT := $(shell pwd)
-SRCDIR := $(PROJECTROOT)/src
-BUILDDIR := $(PROJECTROOT)/build/$(CPU_ARCH)
+JAVASRCDIR := $(PROJECTROOT)/java
+JAVABUILDDIR := $(PROJECTROOT)/java/build
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -43,26 +44,47 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 .DELETE_ON_ERROR:
 
 
-$(BUILDDIR):
-	mkdir -p $(BUILDDIR)
+# Create the manifest file for the task JAR.
+manifest:
+	echo "Main-Class: $(task_main_class)" > Manifest
+	echo "Specification-Title: $(PRODUCT_NAME)" >> Manifest
+	echo "Specification-Version: $(VERSION)" >> Manifest
+	echo "Specification-Vendor: $(ORG)" >> Manifest
+	echo "Implementation-Title: $(task_main_class)" >> Manifest
+	echo "Implementation-Vendor: $(ORG)" >> Manifest
 
-# The compile target depends on the main executable.
-# 'make compile' builds the executable, which is placed in <build_dir>.
-compile:
-	cargo build
+$(JAVABUILDDIR):
+	mkdir -p $(JAVABUILDDIR)
 
-build: compile $(BUILDDIR)
+$(JAVABUILDDIR):
+	mkdir -p $(JAVABUILDDIR)
+
+$(jar_dir):
+	mkdir -p $(jar_dir)
+
+compilejava:
+	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(JAVABUILDDIR) \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/*.java
+
+jar: $(jar_dir)/$(JAR_NAME).jar
+
+$(jar_dir)/$(JAR_NAME).jar: manifest compilejava $(jar_dir)
+	$(JAR) cfm $(jar_dir)/$(JAR_NAME).jar Manifest \
+		-C $(JAVABUILDDIR) scaledmarkets
+	rm Manifest
+
+buildjava: compilejava $(JAVABUILDDIR) jar
 	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
 	if [ -z $ImageName ] then echo "ImageName not set"; exit 1; fi
-	cp target/debug/$(EXECNAME) $BUILDDIR
-	executable=$(EXECNAME) sudo docker build --tag=$ImageName $BUILDDIR
+	cp $(jar_dir)/$(JARNAME) $(JAVABUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) JARNAME=$(JARNAME) sudo docker build --tag=$ImageName $JAVABUILDDIR
 	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
 	sudo docker push $ImageName
 	sudo docker logout
 
 clean:
-	rm -r -f $(BUILDDIR)/$(EXECNAME)
-	rm -r -f target/debug/*
+	rm -r -f $(JAVABUILDDIR)/*
+	rm -r -f $(RUSTBUILDDIR)/*
 
 info:
 	@echo "Makefile for $(PRODUCTNAME)"
