@@ -1,13 +1,19 @@
+# This file should not need to be edited. Build configurations are set in
+# makefile.inc.
+
+include makefile.inc
+
 # Names: -----------------------------------------------------------------------
 PRODUCTNAME := TF-IDF Recommender
 ORG := Scaled Markets
-VERSION := 1.0
-BUILD := 1234
+VERSION := 0.1
 PROJECTNAME := recommender_tfidf
-task_main_class := scaledmarkets.recommenders.solr.SolrSearcher
+main_class := scaledmarkets.recommenders.solr.SolrSearcher
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
-export maxerrs = 5
-JAR_NAME := $(PROJECTNAME).jar
+POP_JAR_NAME := $(PROJECTNAME)-pop.jar
+SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
+PopImageNae := scaledmarkets/$(PROJECTNAME)-pop
+SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 
 # References: ------------------------------------------------------------------
 
@@ -16,21 +22,19 @@ JAR_NAME := $(PROJECTNAME).jar
 # https://lucene.apache.org/solr/guide/6_6/index.html
 
 # Locations: -------------------------------------------------------------------
-include makefile.inc
 
 PROJECTROOT := $(shell pwd)
 JAVASRCDIR := $(PROJECTROOT)/java
-JAVABUILDDIR := $(PROJECTROOT)/java/build
+POPBUILDDIR := $(PROJECTROOT)/java/pop
+SEARCHBUILDDIR := $(PROJECTROOT)/java/search
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
-
 
 # Java dependencies: -----------------------------------------------------------
 
 CLASSPATH := $(SOLR_HOME)/dist/*
 CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
-
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -43,48 +47,78 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
 
-
-# Create the manifest file for the task JAR.
-manifest:
-	echo "Main-Class: $(task_main_class)" > Manifest
-	echo "Specification-Title: $(PRODUCT_NAME)" >> Manifest
-	echo "Specification-Version: $(VERSION)" >> Manifest
-	echo "Specification-Vendor: $(ORG)" >> Manifest
-	echo "Implementation-Title: $(task_main_class)" >> Manifest
-	echo "Implementation-Vendor: $(ORG)" >> Manifest
-
-$(JAVABUILDDIR):
-	mkdir -p $(JAVABUILDDIR)
-
-$(JAVABUILDDIR):
-	mkdir -p $(JAVABUILDDIR)
-
-$(jar_dir):
-	mkdir -p $(jar_dir)
-
+# Compile both the Populator and Search Java files.
 compilejava:
 	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(JAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/*.java
 
-jar: $(jar_dir)/$(JAR_NAME).jar
+# Create the directory into which the jars will be created.
+$(jar_dir):
+	mkdir -p $(jar_dir)
 
-$(jar_dir)/$(JAR_NAME).jar: manifest compilejava $(jar_dir)
-	$(JAR) cfm $(jar_dir)/$(JAR_NAME).jar Manifest \
-		-C $(JAVABUILDDIR) scaledmarkets
-	rm Manifest
+# Create the Populator jar.
 
-buildjava: compilejava $(JAVABUILDDIR) jar
+pop_jar: $(jar_dir)/$(POP_JAR_NAME).jar
+
+$(jar_dir)/$(POP_JAR_NAME).jar: pop_manifest compilejava $(jar_dir)
+	echo "Main-Class: $(pop_main_class)" > PopManifest
+	echo "Specification-Title: $(PRODUCT_NAME) Populator" >> PopManifest
+	echo "Specification-Version: $(VERSION)" >> PopManifest
+	echo "Specification-Vendor: $(ORG)" >> PopManifest
+	echo "Implementation-Title: $(pop_main_class)" >> PopManifest
+	echo "Implementation-Vendor: $(ORG)" >> PopManifest
+	$(JAR) cfm $(jar_dir)/$(POP_JAR_NAME).jar PopManifest \
+		-C $(POPBUILDDIR) scaledmarkets
+	rm PopManifest
+
+# Create the Search jar.
+
+search_jar: $(jar_dir)/$(SEARCH_JAR_NAME).jar
+
+$(jar_dir)/$(SEARCH_JAR_NAME).jar: search_manifest compilejava $(jar_dir)
+	echo "Main-Class: $(search_main_class)" > SearchManifest
+	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> SearchManifest
+	echo "Specification-Version: $(VERSION)" >> SearchManifest
+	echo "Specification-Vendor: $(ORG)" >> SearchManifest
+	echo "Implementation-Title: $(search_main_class)" >> SearchManifest
+	echo "Implementation-Vendor: $(ORG)" >> SearchManifest
+	$(JAR) cfm $(jar_dir)/$(SEARCH_JAR_NAME).jar SearchManifest \
+		-C $(SEARCHBUILDDIR) scaledmarkets
+	rm SearchManifest
+
+# Build the Populator container image.
+
+$(POPBUILDDIR):
+	mkdir -p $(POPBUILDDIR)
+
+buildpopulator: compilejava $(POPBUILDDIR) pop_jar
 	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
-	if [ -z $ImageName ] then echo "ImageName not set"; exit 1; fi
-	cp $(jar_dir)/$(JARNAME) $(JAVABUILDDIR)
-	PROJECTNAME=$(PROJECTNAME) JARNAME=$(JARNAME) sudo docker build --tag=$ImageName $JAVABUILDDIR
+	cp $(jar_dir)/$(POP_JAR_NAME) $(POPBUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) POP_JAR_NAME=$(POP_JAR_NAME) sudo docker build \
+		--tag=$PopImageName $POPBUILDDIR
 	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
-	sudo docker push $ImageName
+	sudo docker push $PopImageName
 	sudo docker logout
 
+# Build the Search container image.
+
+$(SEARCHBUILDDIR):
+	mkdir -p $(SEARCHBUILDDIR)
+
+buildsearcher: compilejava $(SEARCHBUILDDIR) search_jar
+	if [ -z $DockerhubUserId ] then echo "Dockerhub credentials not set"; exit 1; fi
+	cp $(jar_dir)/$(SEARCH_JAR_NAME) $(SEARCHBUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) SEARCH_JAR_NAME=$(SEARCH_JAR_NAME) sudo docker build \
+		--tag=$SearchImageName $SEARCHBUILDDIR
+	sudo docker login -u $DockerhubUserId -p $DockerhubPassword
+	sudo docker push $PopImageName
+	sudo docker logout
+
+# Housekeeping.
+
 clean:
-	rm -r -f $(JAVABUILDDIR)/*
-	rm -r -f $(RUSTBUILDDIR)/*
+	rm -r -f $(POPBUILDDIR)/*
+	rm -r -f $(SEARCHBUILDDIR)/*
 
 info:
 	@echo "Makefile for $(PRODUCTNAME)"
