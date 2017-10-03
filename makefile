@@ -20,6 +20,10 @@ SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 # http://www.solrtutorial.com/solrj-tutorial.html
 # https://lucene.apache.org/solr/6_6_0/solr-core/index.html
 # https://lucene.apache.org/solr/guide/6_6/index.html
+# For SOLR schema, to customize ranking, see,
+#	https://lucene.apache.org/solr/guide/7_0/other-schema-elements.html#similarity
+# For finding similar documents, use "More Like This":
+#	https://lucene.apache.org/solr/guide/6_6/morelikethis.html
 
 # Locations: -------------------------------------------------------------------
 

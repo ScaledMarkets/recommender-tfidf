@@ -10,7 +10,7 @@ import java.io.IOException;
 public class SolrjPopulator {
 	public static void main(String[] args) throws IOException, SolrServerException {
 		SolrClient client = new HttpSolrClient.Builder("http://localhost:8983/solr/collection1").build();
-		for(int i=0;i<1000;++i) {
+		for(int i=0; i<1000; ++i) {
 			SolrInputDocument doc = new SolrInputDocument();
 			doc.addField("cat", "book");
 			doc.addField("id", "book-" + i);
