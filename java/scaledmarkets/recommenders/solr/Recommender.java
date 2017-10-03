@@ -31,20 +31,26 @@ import org.apache.mahout.cf.taste.recommender.Recommender;
 public class Recommender {
 	public static void main(String[] args) throws Exception {
 
-	// Define a data model.
-	DataModel model = new FileDataModel(new File("data.txt"));
-	
-	// Select a user similarity strategy.
-	UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
-	UserNeighborhood neighborhood =
-		new NearestNUserNeighborhood(3, userSimilarity, model);
-	
-	// Create a recommender.
-	Recommender recommender =
-		new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
-	Recommender cachingRecommender = new CachingRecommender(recommender);
-	
-	// Obtain recommendations.
-	List<RecommendedItem> recommendations =
-		cachingRecommender.recommend(1234, 10);
+		// Obtain the user Id from the arguments.
+		....
+		
+		int noOfRecommendations = 10;
+		
+		// Define a data model.
+		DataModel model = new FileDataModel(new File("data.txt"));
+		
+		// Select a user similarity strategy.
+		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
+		UserNeighborhood neighborhood =
+			new NearestNUserNeighborhood(3, userSimilarity, model);
+		
+		// Create a recommender.
+		Recommender recommender =
+			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
+		Recommender cachingRecommender = new CachingRecommender(recommender);
+		
+		// Obtain recommendations.
+		List<RecommendedItem> recommendations =
+			cachingRecommender.recommend(....userId, noOfRecommendations);
+	}
 }
