@@ -57,6 +57,8 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
 
+# Compile Java files.
+
 compile: compilepop compilesearch compileusersimrec
 
 $(POPJAVABUILDDIR):
@@ -73,11 +75,15 @@ compilesearch: $(SEARCHJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(SEARCHJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
 
+$(USERSIMRECJAVABUILDDIR):
+	mkdir -p $(USERSIMRECJAVABUILDDIR)
+
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(USERSIMRECJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/UserSimilarityRecommender.java
 
 # Create the directory into which the jars will be created.
+
 $(jar_dir):
 	mkdir -p $(jar_dir)
 
