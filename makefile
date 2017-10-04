@@ -37,21 +37,22 @@ SEARCHJAVABUILDDIR := $(PROJECTROOT)/classes/search
 USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
 POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
 SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
-USERSIMRECIMAGEBUILDDIR := := $(PROJECTROOT)/images/usersimrec
+USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
 
 # Java dependencies: -----------------------------------------------------------
 
-CLASSPATH := $(SOLR_HOME)/dist/*
-CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
+SOLRCP := $(SOLR_HOME)/dist/*
+SOLRCP := $(SOLRCP):$(SOLR_HOME)/dist/solrj-lib/*
+
+MAHOUTCP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
 
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: all
-.PHONY: compile compilepop compilesearch compileusersimrec pop_jar search_jar \
-	usersimrec_jar popimage searchimage usersimrecimage clean info
+.PHONY: clean info compile compilepop compilesearch compileusersimrec pop_jar search_jar usersimrec_jar popimage searchimage usersimrecimage
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
@@ -69,14 +70,14 @@ $(POPJAVABUILDDIR):
 	mkdir -p $(POPJAVABUILDDIR)
 
 compilepop: $(POPJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(POPJAVABUILDDIR) \
+	javac -Xmaxerrs $(maxerrs) -cp $(SOLRCP) -d $(POPJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrjPopulator.java
 
 $(SEARCHJAVABUILDDIR):
 	mkdir -p $(SEARCHJAVABUILDDIR)
 
 compilesearch: $(SEARCHJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(SEARCHJAVABUILDDIR) \
+	javac -Xmaxerrs $(maxerrs) -cp $(SOLRCP) -d $(SEARCHJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
 
 $(USERSIMRECJAVABUILDDIR):
@@ -84,7 +85,7 @@ $(USERSIMRECJAVABUILDDIR):
 
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) \
-		-cp $(CLASSPATH):$(MAHOUT_HOME)/lib/*:$(MAHOUT_HOME)/lib/hadoop/* \
+		-cp $(MAHOUTCP) \
 		-d $(USERSIMRECJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/UserSimilarityRecommender.java
 
