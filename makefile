@@ -4,6 +4,7 @@
 include makefile.inc
 
 # Names: -----------------------------------------------------------------------
+
 PRODUCTNAME := TF-IDF Recommender
 ORG := Scaled Markets
 VERSION := 0.1
@@ -48,14 +49,17 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 
 # Tasks: -----------------------------------------------------------------------
 
-.DEFAULT_GOAL: build
-.PHONY: compile compilejava pop_jar search_jar buildpopulator buildsearcher clean info
+.DEFAULT_GOAL: all
+.PHONY: compile compilepop compilesearch compileusersimrec pop_jar search_jar \
+	usersimrec_jar popimage searchimage usersimrecimage clean info
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
 .SUFFIXES:
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
+
+all: popimage searchimage usersimrecimage
 
 # Compile Java files.
 
@@ -93,7 +97,7 @@ $(jar_dir):
 
 pop_jar: $(jar_dir)/$(POP_JAR_NAME)
 
-$(jar_dir)/$(POP_JAR_NAME): compilejava $(jar_dir)
+$(jar_dir)/$(POP_JAR_NAME): compilepop $(jar_dir)
 	echo "Main-Class: $(pop_main_class)" > PopManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Populator" >> PopManifest
 	echo "Specification-Version: $(VERSION)" >> PopManifest
@@ -108,7 +112,7 @@ $(jar_dir)/$(POP_JAR_NAME): compilejava $(jar_dir)
 
 search_jar: $(jar_dir)/$(SEARCH_JAR_NAME)
 
-$(jar_dir)/$(SEARCH_JAR_NAME): compilejava $(jar_dir)
+$(jar_dir)/$(SEARCH_JAR_NAME): compilesearch $(jar_dir)
 	echo "Main-Class: $(search_main_class)" > SearchManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> SearchManifest
 	echo "Specification-Version: $(VERSION)" >> SearchManifest
@@ -121,7 +125,9 @@ $(jar_dir)/$(SEARCH_JAR_NAME): compilejava $(jar_dir)
 
 # Create the user similarity recommender jar.
 
-$(jar_dir)/$(USERSIMREC_JAR_NAME): compilejava $(jar_dir)
+usersimrec_jar: $(jar_dir)/$(USERSIMREC_JAR_NAME)
+
+$(jar_dir)/$(USERSIMREC_JAR_NAME): compileusersimrec $(jar_dir)
 	echo "Main-Class: $(search_main_class)" > UserSimRecManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> UserSimRecManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
@@ -137,7 +143,7 @@ $(jar_dir)/$(USERSIMREC_JAR_NAME): compilejava $(jar_dir)
 $(POPIMAGEBUILDDIR):
 	mkdir -p $(POPIMAGEBUILDDIR)
 
-popimage: compilejava $(POPIMAGEBUILDDIR) pop_jar
+popimage: $(POPIMAGEBUILDDIR) pop_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(POP_JAR_NAME) $(POPIMAGEBUILDDIR)
 	PROJECTNAME=$(PROJECTNAME) POP_JAR_NAME=$(POP_JAR_NAME) docker build \
@@ -151,7 +157,7 @@ popimage: compilejava $(POPIMAGEBUILDDIR) pop_jar
 $(SEARCHIMAGEBUILDDIR):
 	mkdir -p $(SEARCHIMAGEBUILDDIR)
 
-searchimage: compilejava $(SEARCHIMAGEBUILDDIR) search_jar
+searchimage: $(SEARCHIMAGEBUILDDIR) search_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(SEARCH_JAR_NAME) $(SEARCHIMAGEBUILDDIR)
 	PROJECTNAME=$(PROJECTNAME) SEARCH_JAR_NAME=$(SEARCH_JAR_NAME) docker build \
@@ -165,7 +171,7 @@ searchimage: compilejava $(SEARCHIMAGEBUILDDIR) search_jar
 $(USERSIMRECIMAGEBUILDDIR):
 	mkdir -p $(USERSIMRECIMAGEBUILDDIR)
 
-searchimage: compilejava $(USERSIMRECIMAGEBUILDDIR) search_jar
+usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
 	PROJECTNAME=$(PROJECTNAME) USERSIMREC_JAR_NAME=$(USERSIMREC_JAR_NAME) docker build \
