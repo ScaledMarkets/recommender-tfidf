@@ -79,7 +79,9 @@ $(USERSIMRECJAVABUILDDIR):
 	mkdir -p $(USERSIMRECJAVABUILDDIR)
 
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(USERSIMRECJAVABUILDDIR) \
+	javac -Xmaxerrs $(maxerrs) \
+		-cp $(CLASSPATH):$(MAHOUT_HOME)/lib/*:$(MAHOUT_HOME)/lib/hadoop/* \
+		-d $(USERSIMRECJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/UserSimilarityRecommender.java
 
 # Create the directory into which the jars will be created.

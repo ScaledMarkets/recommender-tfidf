@@ -1,5 +1,5 @@
 FROM docker.io/centos:7
-RUN mkdir /recommender-tfidf
-ADD ["recommender_tfidf-pop.jar", "/recommender-tfidf/"]
-WORKDIR /recommender-tfidf/
-#CMD ["java -jar recommender-tfidf/pop"]
+RUN mkdir /recommender-pop
+ADD ["recommender-pop.jar", "/recommender-pop/"]
+WORKDIR /recommender-pop/
+#CMD ["java -jar recommender-pop.jar"]

@@ -1,5 +1,5 @@
 FROM docker.io/centos:7
-RUN mkdir /recommender-tfidf
-ADD ["recommender_tfidf-search.jar", "/recommender-tfidf/"]
-WORKDIR /recommender-tfidf/
-#CMD ["java -jar recommender-tfidf/search"]
+RUN mkdir /recommender-search
+ADD ["recommender-search.jar", "/recommender-search/"]
+WORKDIR /recommender-search/
+#CMD ["java -jar recommender-search.jar"]
