@@ -12,8 +12,10 @@ main_class := scaledmarkets.recommenders.solr.SolrSearcher
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 POP_JAR_NAME := $(PROJECTNAME)-pop.jar
 SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
+USERSIMREC_JAR_NAME := (PROJECTNAME)-usersimrec.jar
 PopImageName := scaledmarkets/$(PROJECTNAME)-pop
 SearchImageName := scaledmarkets/$(PROJECTNAME)-search
+UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 
 # References: ------------------------------------------------------------------
 
@@ -29,10 +31,12 @@ SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 
 PROJECTROOT := $(shell pwd)
 JAVASRCDIR := $(PROJECTROOT)/java
-POPJAVABUILDDIR := $(PROJECTROOT)/java/pop
-SEARCHJAVABUILDDIR := $(PROJECTROOT)/java/search
+POPJAVABUILDDIR := $(PROJECTROOT)/classes/pop
+SEARCHJAVABUILDDIR := $(PROJECTROOT)/classes/search
+USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
 POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
 SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
+USERSIMRECIMAGEBUILDDIR := := $(PROJECTROOT)/images/usersimrec
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -53,7 +57,7 @@ CLASSPATH := $(CLASSPATH):$(SOLR_HOME)/dist/solrj-lib/*
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
 
-compile: compilepop compilesearch
+compile: compilepop compilesearch compileusersimrec
 
 $(POPJAVABUILDDIR):
 	mkdir -p $(POPJAVABUILDDIR)
@@ -68,6 +72,10 @@ $(SEARCHJAVABUILDDIR):
 compilesearch: $(SEARCHJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(SEARCHJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
+
+compileusersimrec: $(USERSIMRECJAVABUILDDIR)
+	javac -Xmaxerrs $(maxerrs) -cp $(CLASSPATH) -d $(USERSIMRECJAVABUILDDIR) \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/UserSimilarityRecommender.java
 
 # Create the directory into which the jars will be created.
 $(jar_dir):
@@ -103,6 +111,19 @@ $(jar_dir)/$(SEARCH_JAR_NAME): compilejava $(jar_dir)
 		-C $(SEARCHJAVABUILDDIR) scaledmarkets
 	rm SearchManifest
 
+# Create the user similarity recommender jar.
+
+$(jar_dir)/$(USERSIMREC_JAR_NAME): compilejava $(jar_dir)
+	echo "Main-Class: $(search_main_class)" > UserSimRecManifest
+	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> UserSimRecManifest
+	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
+	echo "Specification-Vendor: $(ORG)" >> UserSimRecManifest
+	echo "Implementation-Title: $(search_main_class)" >> UserSimRecManifest
+	echo "Implementation-Vendor: $(ORG)" >> UserSimRecManifest
+	jar cfm $(jar_dir)/$(USERSIMREC_JAR_NAME) UserSimRecManifest \
+		-C $(USERSIMRECJAVABUILDDIR) scaledmarkets
+	rm UserSimRecManifest
+
 # Build the Populator container image.
 
 $(POPIMAGEBUILDDIR):
@@ -131,11 +152,29 @@ searchimage: compilejava $(SEARCHIMAGEBUILDDIR) search_jar
 	docker push $(SearchImageName)
 	docker logout
 
+# Build the user similarity recommender container image.
+
+$(USERSIMRECIMAGEBUILDDIR):
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)
+
+searchimage: compilejava $(USERSIMRECIMAGEBUILDDIR) search_jar
+	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
+	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
+	PROJECTNAME=$(PROJECTNAME) USERSIMREC_JAR_NAME=$(USERSIMREC_JAR_NAME) docker build \
+		--tag=$(UserSimRecImageName) $(USERSIMRECIMAGEBUILDDIR)
+	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
+	docker push $(UserSimRecImageName)
+	docker logout
+
 # Housekeeping.
 
 clean:
-	rm -r -f $(POPBUILDDIR)/*
-	rm -r -f $(SEARCHBUILDDIR)/*
+	rm -r -f $(POPJAVABUILDDIR)/*
+	rm -r -f $(POPIMAGEBUILDDIR)/*
+	rm -r -f $(SEARCHJAVABUILDDIR)/*
+	rm -r -f $(SEARCHIMAGEBUILDDIR)
+	rm -r -f $(USERSIMRECJAVABUILDDIR)/*
+	rm -r -f $(USERSIMRECIMAGEBUILDDIR)
 
 info:
 	@echo "Makefile for $(PRODUCTNAME)"
