@@ -1,12 +1,18 @@
 package test;
 
+import scaledmarkets.recommenders.mahout.*;
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+
 import cucumber.api.Format;
+import cucumber.api.java.Before;
+import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
 import java.io.File;
 import java.io.PrintWriter;
+import java.util.List;
 
 import static test.Utils.*;
 
@@ -19,7 +25,7 @@ public class TestBasic extends TestBase {
 	public void ten_users_and_their_item_preferences() throws Exception {
 		this.csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(this.csvFile);
-		pw.println("1,100,3.5");100,101,102,103,104,105,106,107,108,109,110,111,112,113,114,115
+		pw.println("1,100,3.5");
 		pw.println("1,101,2.8");
 		pw.println("1,105,1.1");
 		pw.println("1,115,3.4");
@@ -59,12 +65,13 @@ public class TestBasic extends TestBase {
 		pw.println("10,106,2.0");
 		pw.println("10,111,1.8");
 		pw.println("10,113,3.0");
+		pw.close();
 	}
 	
 	@When("^I request two recommendations for a user$")
 	public void i_request_two_recommendations_for_a_user() throws Exception {
 		long userId = 5;
-		this.items = (new UserSimilarityRecommender()).recommend(csvFile, userId, 2);
+		this.items = (new UserSimilarityRecommender()).recommend(this.csvFile, userId, 2);
 	}
 	
 	@Then("^I obtain two recommendations$")

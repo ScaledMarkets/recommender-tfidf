@@ -15,7 +15,7 @@ usersimrec_main_class := scaledmarkets.recommenders.mahout.UserSimularityRecomme
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 POP_JAR_NAME := $(PROJECTNAME)-pop.jar
 SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
-USERSIMREC_JAR_NAME := (PROJECTNAME)-usersimrec.jar
+USERSIMREC_JAR_NAME := $(PROJECTNAME)-usersimrec.jar
 PopImageName := scaledmarkets/$(PROJECTNAME)-pop
 SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
@@ -52,12 +52,19 @@ SHELL := /bin/sh
 SOLR_CP := $(SOLR_HOME)/dist/*
 SOLR_CP := $(SOLR_CP):$(SOLR_HOME)/dist/solrj-lib/*
 
-MAHOUT_CP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
+MAHOUT_CP := $(MAHOUT_HOME)/*
+MAHOUT_CP := $(MAHOUT_CP):$(MAHOUT_HOME)/lib/*
+#MAHOUT_CP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
+#MAHOUT_CP := $(MAHOUT_CP):$(MAHOUT_HOME)/lib/guava-14.0.1.jar
 
-CUCUMBER_CP:=$(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
-CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
-CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
-CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
+CUCUMBER_CP := $(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
+CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
+CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
+CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
+#CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-jvm-deps-1.0.3.jar
+
+#SLF4J_CP := $(SLF4J_HOME)/slf4j-api-1.7.25.jar
+#SLF4J_CP := $(SLF4J_CP):$(SLF4J_HOME)/slf4j-simple-1.7.25.jar
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -197,14 +204,16 @@ $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
 compile_tests: $(test_build_dir)
-	javac -Xmaxerrs $(maxerrs) -cp $(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MAHOUT_CP) -d $(test_build_dir) \
+	javac -Xmaxerrs $(maxerrs) \
+		-cp $(CUCUMBER_CP):$(MAHOUT_CP):$(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
+		-d $(test_build_dir) \
 		$(test_dir)/steps/$(test_package)/*.java
 
 test_usersimrec: compile_tests
-	java -cp $(CUCUMBER_CP):$(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MAHOUT_CP) \
+	java -cp $(MAHOUT_CP):$(CUCUMBER_CP):$(test_build_dir):$(CUCUMBER_CP):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
-		--tags @done @usersimrec
+		--tags @done --tags @usersimrec
 
 test: test_usersimrec
 

@@ -43,6 +43,9 @@ import java.util.List;
  */
 
 public class UserSimilarityRecommender {
+	
+	final int NeighborhoodSize = 3;
+	
 	public static void main(String[] args) throws Exception {
 
 		if ((args.length >= 1) &&
@@ -62,7 +65,6 @@ public class UserSimilarityRecommender {
 		long userId = Long.parseLong(args[1]);
 		
 		final int NoOfRecommendations = 10;
-		final int NeighborhoodSize = 3;
 		
 		UserSimilarityRecommender rec = new UserSimilarityRecommender();
 		List<RecommendedItem> recommendations = rec.recommend(
@@ -73,7 +75,7 @@ public class UserSimilarityRecommender {
 		}
 	}
 	
-	public List<RecommendedItem> recommend(File csvFile, long userId, int noOfRecs) {
+	public List<RecommendedItem> recommend(File csvFile, long userId, int noOfRecs) throws Exception {
 		
 		// Define a data model.
 		DataModel model = new FileDataModel(csvFile);
