@@ -19,14 +19,17 @@ import static test.Utils.*;
 public class TestBasic extends TestBase {
 	
 	private File csvFile;
-	private List<RecommendedItem> items;
+	private List<RecommendedItem> recommendations;
 	
 	// From example at,
 	//	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
 	@Given("^four users and their item preferences$")
 	public void four_users_and_their_item_preferences() throws Exception {
+		
 		this.csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(this.csvFile);
+		
+		// User 1
 		pw.println("1,10,1.0");
 		pw.println("1,11,2.0");
 		pw.println("1,12,5.0");
@@ -36,12 +39,16 @@ public class TestBasic extends TestBase {
 		pw.println("1,16,5.0");
 		pw.println("1,17,1.0");
 		pw.println("1,18,5.0");
+		
+		// User 2
 		pw.println("2,10,1.0");
 		pw.println("2,11,2.0");
 		pw.println("2,15,5.0");
 		pw.println("2,16,4.5");
 		pw.println("2,17,1.0");
 		pw.println("2,18,5.0");
+		
+		// User 3
 		pw.println("3,11,2.5");
 		pw.println("3,12,4.5");
 		pw.println("3,13,4.0");
@@ -50,6 +57,8 @@ public class TestBasic extends TestBase {
 		pw.println("3,16,4.5");
 		pw.println("3,17,4.0");
 		pw.println("3,18,5.0");
+		
+		// User 4
 		pw.println("4,10,5.0");
 		pw.println("4,11,5.0");
 		pw.println("4,12,5.0");
@@ -59,6 +68,7 @@ public class TestBasic extends TestBase {
 		pw.println("4,16,1.0");
 		pw.println("4,17,4.0");
 		pw.println("4,18,1.0");
+		
 		pw.close();
 	}
 	
@@ -140,13 +150,18 @@ public class TestBasic extends TestBase {
 		*/
 		
 		
-		this.items = (new UserSimilarityRecommender()).recommend(
+		this.recommendations = (new UserSimilarityRecommender()).recommend(
 			this.csvFile, neighborhoodThreshold, userId, 2);
+		
+		System.out.println("Recommended items (" + this.recommendations.size() + "):");
+		for (RecommendedItem recommendation : this.recommendations) {
+			System.out.println(recommendation.getItemID());
+		}
 	}
 	
 	@Then("^I obtain two recommendations$")
 	public void i_obtain_two_recommendations() throws Exception {
-		assertThat(this.items.size() == 2, "Expected items to have 2" +
-			" elements, but it has " + this.items.size());
+		assertThat(this.recommendations.size() == 2, "Expected items to have 2" +
+			" elements, but it has " + this.recommendations.size());
 	}
 }
