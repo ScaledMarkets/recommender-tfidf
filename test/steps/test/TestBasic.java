@@ -21,6 +21,62 @@ public class TestBasic extends TestBase {
 	private File csvFile;
 	private List<RecommendedItem> items;
 	
+	@Given("^ten users with identical item preferences$")
+	public void ten_users_with_identical_item_preferences() throws Exception {
+		this.csvFile = new File("TestBasic.csv");
+		PrintWriter pw = new PrintWriter(this.csvFile);
+		pw.println("1,100,3.5");
+		pw.println("1,101,2.8");
+		pw.println("1,105,1.1");
+		pw.println("1,115,3.4");
+		
+		pw.println("2,100,3.5");
+		pw.println("2,101,2.8");
+		pw.println("2,105,1.1");
+		pw.println("2,115,3.4");
+		
+		pw.println("3,100,3.5");
+		pw.println("3,101,2.8");
+		pw.println("3,105,1.1");
+		pw.println("3,115,3.4");
+		
+		pw.println("4,100,3.5");
+		pw.println("4,101,2.8");
+		pw.println("4,105,1.1");
+		pw.println("4,115,3.4");
+		
+		pw.println("5,100,3.5");
+		pw.println("5,101,2.8");
+		pw.println("5,105,1.1");
+		pw.println("5,115,3.4");
+		
+		pw.println("6,100,3.5");
+		pw.println("6,101,2.8");
+		pw.println("6,105,1.1");
+		pw.println("6,115,3.4");
+		
+		pw.println("7,100,3.5");
+		pw.println("7,101,2.8");
+		pw.println("7,105,1.1");
+		pw.println("7,115,3.4");
+		
+		pw.println("8,100,3.5");
+		pw.println("8,101,2.8");
+		pw.println("8,105,1.1");
+		pw.println("8,115,3.4");
+		
+		pw.println("9,100,3.5");
+		pw.println("9,101,2.8");
+		pw.println("9,105,1.1");
+		pw.println("9,115,3.4");
+		
+		pw.println("10,100,3.5");
+		pw.println("10,101,2.8");
+		pw.println("10,105,1.1");
+		pw.println("10,115,3.4");
+		pw.close();
+	}
+	
 	@Given("^ten users and their item preferences$")
 	public void ten_users_and_their_item_preferences() throws Exception {
 		this.csvFile = new File("TestBasic.csv");
@@ -70,8 +126,10 @@ public class TestBasic extends TestBase {
 	
 	@When("^I request two recommendations for a user$")
 	public void i_request_two_recommendations_for_a_user() throws Exception {
+		int neighborhoodSize = 5;
 		long userId = 5;
-		this.items = (new UserSimilarityRecommender()).recommend(this.csvFile, userId, 2);
+		this.items = (new UserSimilarityRecommender()).recommend(
+			this.csvFile, neighborhoodSize, userId, 2);
 	}
 	
 	@Then("^I obtain two recommendations$")

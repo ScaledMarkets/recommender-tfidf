@@ -44,7 +44,7 @@ import java.util.List;
 
 public class UserSimilarityRecommender {
 	
-	final int NeighborhoodSize = 3;
+	final static int NeighborhoodSize = 3;
 	
 	public static void main(String[] args) throws Exception {
 
@@ -68,14 +68,14 @@ public class UserSimilarityRecommender {
 		
 		UserSimilarityRecommender rec = new UserSimilarityRecommender();
 		List<RecommendedItem> recommendations = rec.recommend(
-			new File(filePath), userId, NoOfRecommendations);
+			new File(filePath), NeighborhoodSize, userId, NoOfRecommendations);
 		
 		for (RecommendedItem recommendation : recommendations) {
 			System.out.println(recommendation.getItemID());
 		}
 	}
 	
-	public List<RecommendedItem> recommend(File csvFile, long userId, int noOfRecs) throws Exception {
+	public List<RecommendedItem> recommend(File csvFile, int neighborhoodSize, long userId, int noOfRecs) throws Exception {
 		
 		// Define a data model.
 		DataModel model = new FileDataModel(csvFile);
@@ -84,7 +84,7 @@ public class UserSimilarityRecommender {
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
 		UserNeighborhood neighborhood =
 			new NearestNUserNeighborhood(
-				NeighborhoodSize, userSimilarity, model);
+				neighborhoodSize, userSimilarity, model);
 		
 		// Create a recommender.
 		Recommender recommender =
