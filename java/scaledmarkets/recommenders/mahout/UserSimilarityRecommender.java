@@ -71,7 +71,8 @@ public class UserSimilarityRecommender {
 			
 			....replace FileDataModel with a database
 			
-			
+			// https://mahout.apache.org/users/classification/bayesian.html
+			// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
 			
 		}, new JsonTransformer());
 		
