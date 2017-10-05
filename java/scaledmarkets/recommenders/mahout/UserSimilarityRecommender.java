@@ -11,7 +11,8 @@ import org.apache.mahout.cf.taste.similarity.UserSimilarity;
 
 // https://github.com/apache/mahout/tree/master/mr/src/main/java/org/apache/mahout/cf/taste/impl
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
-import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
+import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
+//import org.apache.mahout.cf.taste.impl.neighborhood.NearestNUserNeighborhood;
 import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 import org.apache.mahout.cf.taste.impl.recommender.CachingRecommender;
 
@@ -44,7 +45,8 @@ import java.util.List;
 
 public class UserSimilarityRecommender {
 	
-	final static int NeighborhoodSize = 3;
+	final static int NeighborhoodSize = 1;
+	final static double NeighborhoodThreshold = 0.1;
 	
 	public static void main(String[] args) throws Exception {
 
@@ -68,14 +70,15 @@ public class UserSimilarityRecommender {
 		
 		UserSimilarityRecommender rec = new UserSimilarityRecommender();
 		List<RecommendedItem> recommendations = rec.recommend(
-			new File(filePath), NeighborhoodSize, userId, NoOfRecommendations);
+			new File(filePath), NeighborhoodThreshold, userId, NoOfRecommendations);
+//			new File(filePath), NeighborhoodSize, userId, NoOfRecommendations);
 		
 		for (RecommendedItem recommendation : recommendations) {
 			System.out.println(recommendation.getItemID());
 		}
 	}
 	
-	public List<RecommendedItem> recommend(File csvFile, int neighborhoodSize, long userId, int noOfRecs) throws Exception {
+	public List<RecommendedItem> recommend(File csvFile, double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
 		
 		// Define a data model.
 		DataModel model = new FileDataModel(csvFile);
@@ -83,17 +86,19 @@ public class UserSimilarityRecommender {
 		// Select a user similarity strategy.
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
 		UserNeighborhood neighborhood =
-			new NearestNUserNeighborhood(
-				neighborhoodSize, userSimilarity, model);
+			new ThresholdUserNeighborhood(
+				neighborhoodThreshold, userSimilarity, model);
+//			new NearestNUserNeighborhood(
+//				neighborhoodSize, userSimilarity, model);
 		
 		// Create a recommender.
 		Recommender recommender =
 			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
-		Recommender cachingRecommender = new CachingRecommender(recommender);
+		//Recommender cachingRecommender = new CachingRecommender(recommender);
 		
 		// Obtain recommendations.
 		List<RecommendedItem> recommendations =
-			cachingRecommender.recommend(userId, noOfRecs);
+			recommender.recommend(userId, noOfRecs);
 		
 		return recommendations;
 	}

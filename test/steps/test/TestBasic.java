@@ -21,6 +21,47 @@ public class TestBasic extends TestBase {
 	private File csvFile;
 	private List<RecommendedItem> items;
 	
+	// From example at,
+	//	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
+	@Given("^four users and their item preferences$")
+	public void four_users_and_their_item_preferences() throws Exception {
+		this.csvFile = new File("TestBasic.csv");
+		PrintWriter pw = new PrintWriter(this.csvFile);
+		pw.println("1,10,1.0");
+		pw.println("1,11,2.0");
+		pw.println("1,12,5.0");
+		pw.println("1,13,5.0");
+		pw.println("1,14,5.0");
+		pw.println("1,15,4.0");
+		pw.println("1,16,5.0");
+		pw.println("1,17,1.0");
+		pw.println("1,18,5.0");
+		pw.println("2,10,1.0");
+		pw.println("2,11,2.0");
+		pw.println("2,15,5.0");
+		pw.println("2,16,4.5");
+		pw.println("2,17,1.0");
+		pw.println("2,18,5.0");
+		pw.println("3,11,2.5");
+		pw.println("3,12,4.5");
+		pw.println("3,13,4.0");
+		pw.println("3,14,3.0");
+		pw.println("3,15,3.5");
+		pw.println("3,16,4.5");
+		pw.println("3,17,4.0");
+		pw.println("3,18,5.0");
+		pw.println("4,10,5.0");
+		pw.println("4,11,5.0");
+		pw.println("4,12,5.0");
+		pw.println("4,13,0.0");
+		pw.println("4,14,2.0");
+		pw.println("4,15,3.0");
+		pw.println("4,16,1.0");
+		pw.println("4,17,4.0");
+		pw.println("4,18,1.0");
+		pw.close();
+	}
+	
 	@Given("^ten users with identical item preferences$")
 	public void ten_users_with_identical_item_preferences() throws Exception {
 		this.csvFile = new File("TestBasic.csv");
@@ -77,59 +118,30 @@ public class TestBasic extends TestBase {
 		pw.close();
 	}
 	
-	@Given("^ten users and their item preferences$")
-	public void ten_users_and_their_item_preferences() throws Exception {
-		this.csvFile = new File("TestBasic.csv");
-		PrintWriter pw = new PrintWriter(this.csvFile);
-		pw.println("1,100,3.5");
-		pw.println("1,101,2.8");
-		pw.println("1,105,1.1");
-		pw.println("1,115,3.4");
-		pw.println("2,108,2.0");
-		pw.println("2,105,4.8");
-		pw.println("2,108,.91");
-		pw.println("2,109,1.4");
-		pw.println("3,115,1.1");
-		pw.println("3,108,3.7");
-		pw.println("3,113,.34");
-		pw.println("3,114,.66");
-		pw.println("4,115,4.1");
-		pw.println("4,106,1.4");
-		pw.println("4,108,.78");
-		pw.println("4,112,2.3");
-		pw.println("5,113,6.2");
-		pw.println("5,101,1.4");
-		pw.println("5,104,.99");
-		pw.println("5,109,3.8");
-		pw.println("6,114,4.2");
-		pw.println("6,101,2.4");
-		pw.println("6,102,1.8");
-		pw.println("6,111,1.3");
-		pw.println("7,112,2.9");
-		pw.println("7,108,2.4");
-		pw.println("7,111,1.3");
-		pw.println("7,113,4.1");
-		pw.println("8,115,3.9");
-		pw.println("8,102,3.2");
-		pw.println("8,105,1.6");
-		pw.println("8,107,4.1");
-		pw.println("9,111,.88");
-		pw.println("9,112,3.3");
-		pw.println("9,113,2.5");
-		pw.println("9,115,6.0");
-		pw.println("10,104,3.7");
-		pw.println("10,106,2.0");
-		pw.println("10,111,1.8");
-		pw.println("10,113,3.0");
-		pw.close();
-	}
-	
 	@When("^I request two recommendations for a user$")
 	public void i_request_two_recommendations_for_a_user() throws Exception {
-		int neighborhoodSize = 5;
-		long userId = 5;
+		double neighborhoodThreshold = 0.1;
+		long userId = 2;
+		
+		/*
+		RecommenderBuilder builder = new RecommenderBuilder() {
+			public Recommender buildRecommender() {
+				UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
+				UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, dataModel);
+				return new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
+			}
+		}
+		
+		DataModel model = new FileDataModel(this.csvFile);
+		RecommenderEvaluator evaluator = new AverageAbsoluteDifferenceRecommenderEvaluator();
+		RecommenderBuilder builder = builder;
+		double result = evaluator.evaluate(builder, null, model, 0.9, 1.0);
+		System.out.println(result);		
+		*/
+		
+		
 		this.items = (new UserSimilarityRecommender()).recommend(
-			this.csvFile, neighborhoodSize, userId, 2);
+			this.csvFile, neighborhoodThreshold, userId, 2);
 	}
 	
 	@Then("^I obtain two recommendations$")
