@@ -1,4 +1,4 @@
-package scaledmarkets.recommenders.solr;
+package scaledmarkets.recommenders.mahout;
 
 // https://github.com/apache/mahout/tree/master/mr/src/main/java/org/apache/mahout/cf/taste/recommender
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
@@ -64,8 +64,19 @@ public class UserSimilarityRecommender {
 		final int NoOfRecommendations = 10;
 		final int NeighborhoodSize = 3;
 		
+		UserSimilarityRecommender rec = new UserSimilarityRecommender();
+		List<RecommendedItem> recommendations = rec.recommend(
+			new File(filePath), userId, NoOfRecommendations);
+		
+		for (RecommendedItem recommendation : recommendations) {
+			System.out.println(recommendation.getItemID());
+		}
+	}
+	
+	public List<RecommendedItem> recommend(File csvFile, long userId, int noOfRecs) {
+		
 		// Define a data model.
-		DataModel model = new FileDataModel(new File(filePath));
+		DataModel model = new FileDataModel(csvFile);
 		
 		// Select a user similarity strategy.
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
@@ -80,11 +91,9 @@ public class UserSimilarityRecommender {
 		
 		// Obtain recommendations.
 		List<RecommendedItem> recommendations =
-			cachingRecommender.recommend(userId, NoOfRecommendations);
+			cachingRecommender.recommend(userId, noOfRecs);
 		
-		for (RecommendedItem recommendation : recommendations) {
-			System.out.println(recommendation);
-		}
+		return recommendations;
 	}
 	
 	public static void printUsage() {

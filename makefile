@@ -9,7 +9,9 @@ PRODUCTNAME := TF-IDF Recommender
 ORG := Scaled Markets
 VERSION := 0.1
 PROJECTNAME := recommender_tfidf
-main_class := scaledmarkets.recommenders.solr.SolrSearcher
+pop_main_class := scaledmarkets.recommenders.solr.SolrjPopulator
+search_main_class := scaledmarkets.recommenders.solr.SolrjSearcher
+usersimrec_main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
 CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 POP_JAR_NAME := $(PROJECTNAME)-pop.jar
 SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
@@ -38,6 +40,10 @@ USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
 POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
 SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
 USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
+CUCUMBER_CLASSPATH:=$(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
+CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
+CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
+CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -87,7 +93,7 @@ compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) \
 		-cp $(MAHOUTCP) \
 		-d $(USERSIMRECJAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/UserSimilarityRecommender.java
+		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java
 
 # Create the directory into which the jars will be created.
 
@@ -129,11 +135,11 @@ $(jar_dir)/$(SEARCH_JAR_NAME): compilesearch $(jar_dir)
 usersimrec_jar: $(jar_dir)/$(USERSIMREC_JAR_NAME)
 
 $(jar_dir)/$(USERSIMREC_JAR_NAME): compileusersimrec $(jar_dir)
-	echo "Main-Class: $(search_main_class)" > UserSimRecManifest
+	echo "Main-Class: $(usersimrec_main_class)" > UserSimRecManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> UserSimRecManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
 	echo "Specification-Vendor: $(ORG)" >> UserSimRecManifest
-	echo "Implementation-Title: $(search_main_class)" >> UserSimRecManifest
+	echo "Implementation-Title: $(usersimrec_main_class)" >> UserSimRecManifest
 	echo "Implementation-Vendor: $(ORG)" >> UserSimRecManifest
 	jar cfm $(jar_dir)/$(USERSIMREC_JAR_NAME) UserSimRecManifest \
 		-C $(USERSIMRECJAVABUILDDIR) scaledmarkets
@@ -180,6 +186,18 @@ usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	docker push $(UserSimRecImageName)
 	docker logout
+
+# Compile the test source files.
+compile_tests: $(test_build_dir)
+	$(JAVAC) -Xmaxerrs $(maxerrs) -cp $(compile_tests_cp) -d $(test_build_dir) \
+		$(....test_src_dir)/steps/$(....test_package)/*.java
+
+test: compile_tests
+	....java -cp $(CUCUMBER_CLASSPATH):$(....test_dir)/steps \
+		cucumber.api.cli.Main \
+		--glue test $(....test_dir)/features \
+		--tags @done
+
 
 # Housekeeping.
 
