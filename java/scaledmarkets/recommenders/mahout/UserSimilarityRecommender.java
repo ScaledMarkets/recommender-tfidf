@@ -28,6 +28,9 @@ import org.apache.mahout.cf.taste.recommender.Recommender;
 import java.io.File;
 import java.util.List;
 
+import static spark.Spark.*;
+import com.google.gson.Gson;
+
 /**
  * Obtain a recommendation for a specified user, based on the user's similarity
  * to other users, in terms of the preferences that the user has expressed for
@@ -39,17 +42,45 @@ import java.util.List;
  * See also,
  *	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
  *
- * To use Spark:
+ * To use Apache Spark:
  *	https://mahout.apache.org/users/environment/how-to-build-an-app.html
+ *
+ * For info on SparkJava Web service framework (not related to Apache Spark):
+ *	http://blog.sahil.me/posts/simple-web-services-and-java/
+ *	http://sparkjava.com/
  */
-
 public class UserSimilarityRecommender {
+	
+	private Gson gson = new Gson();
 	
 	final static int NeighborhoodSize = 1;
 	final static double NeighborhoodThreshold = 0.1;
 	
+	@Override
+	public String render(Object model) {
+		return gson.toJson(model);
+	}	
+	
 	public static void main(String[] args) throws Exception {
 
+		get("/recommend", "application/json", (Request request, Response response) -> {
+			
+			String thresholdStr = request.queryParams("threshold");
+			String userIdStr = request.queryParams("userid");
+			String numOfRecsStr = request.queryParams("numberofrecs");
+			
+			....replace FileDataModel with a database
+			
+			
+			
+		}, new JsonTransformer());
+		
+			
+
+		
+		
+		
+		/*
 		if ((args.length >= 1) &&
 				(args[0].equals("-h") || args[0].equals("help") ||
 					args[0].equals("--help") || args[0].equals("-help"))) {
@@ -76,6 +107,7 @@ public class UserSimilarityRecommender {
 		for (RecommendedItem recommendation : recommendations) {
 			System.out.println(recommendation.getItemID());
 		}
+		*/
 	}
 	
 	public List<RecommendedItem> recommend(File csvFile, double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
@@ -103,10 +135,12 @@ public class UserSimilarityRecommender {
 		return recommendations;
 	}
 	
+	/*
 	public static void printUsage() {
 		System.out.println("requires arguments:");
 		System.out.println("\tfile-path - location of csv file, containing lines\n" +
 			"\t\tof the form \"userID,itemID,prefValue\" (e.g. \"39505,290002,3.5\")");
 		System.out.println("\tuserID - the user for which to provide recommendations");
 	}
+	*/
 }
