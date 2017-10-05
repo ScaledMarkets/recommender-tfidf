@@ -19,6 +19,7 @@ USERSIMREC_JAR_NAME := (PROJECTNAME)-usersimrec.jar
 PopImageName := scaledmarkets/$(PROJECTNAME)-pop
 SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
+test_package := test
 
 # References: ------------------------------------------------------------------
 
@@ -40,20 +41,23 @@ USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
 POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
 SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
 USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
-CUCUMBER_CLASSPATH:=$(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
-CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
-CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
-CUCUMBER_CLASSPATH:=$(CUCUMBER_CLASSPATH):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
+test_dir := $(PROJECTROOT)/test
+test_build_dir := $(PROJECTROOT)/test/classes
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
 
 # Java dependencies: -----------------------------------------------------------
 
-SOLRCP := $(SOLR_HOME)/dist/*
-SOLRCP := $(SOLRCP):$(SOLR_HOME)/dist/solrj-lib/*
+SOLR_CP := $(SOLR_HOME)/dist/*
+SOLR_CP := $(SOLR_CP):$(SOLR_HOME)/dist/solrj-lib/*
 
-MAHOUTCP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
+MAHOUT_CP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
+
+CUCUMBER_CP:=$(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
+CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
+CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
+CUCUMBER_CP:=$(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -76,14 +80,14 @@ $(POPJAVABUILDDIR):
 	mkdir -p $(POPJAVABUILDDIR)
 
 compilepop: $(POPJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(SOLRCP) -d $(POPJAVABUILDDIR) \
+	javac -Xmaxerrs $(maxerrs) -cp $(SOLR_CP) -d $(POPJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrjPopulator.java
 
 $(SEARCHJAVABUILDDIR):
 	mkdir -p $(SEARCHJAVABUILDDIR)
 
 compilesearch: $(SEARCHJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(SOLRCP) -d $(SEARCHJAVABUILDDIR) \
+	javac -Xmaxerrs $(maxerrs) -cp $(SOLR_CP) -d $(SEARCHJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
 
 $(USERSIMRECJAVABUILDDIR):
@@ -91,7 +95,7 @@ $(USERSIMRECJAVABUILDDIR):
 
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) \
-		-cp $(MAHOUTCP) \
+		-cp $(MAHOUT_CP) \
 		-d $(USERSIMRECJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java
 
@@ -188,16 +192,21 @@ usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	docker logout
 
 # Compile the test source files.
+
+$(test_build_dir):
+	mkdir -p $(test_build_dir)
+
 compile_tests: $(test_build_dir)
-	$(JAVAC) -Xmaxerrs $(maxerrs) -cp $(compile_tests_cp) -d $(test_build_dir) \
-		$(....test_src_dir)/steps/$(....test_package)/*.java
+	javac -Xmaxerrs $(maxerrs) -cp $(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MAHOUT_CP) -d $(test_build_dir) \
+		$(test_dir)/steps/$(test_package)/*.java
 
-test: compile_tests
-	....java -cp $(CUCUMBER_CLASSPATH):$(....test_dir)/steps \
+test_usersimrec: compile_tests
+	java -cp $(CUCUMBER_CP):$(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MAHOUT_CP) \
 		cucumber.api.cli.Main \
-		--glue test $(....test_dir)/features \
-		--tags @done
+		--glue $(test_package) $(test_dir)/features \
+		--tags @done @usersimrec
 
+test: test_usersimrec
 
 # Housekeeping.
 

@@ -2,7 +2,7 @@
 
 Feature: Basic
 	
-	@done
+	@done @usersimrec
 	Scenario: Basic functionality
 		Given ten users and their item preferences
 		When I request two recommendations for a user
