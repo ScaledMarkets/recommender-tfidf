@@ -53,16 +53,9 @@ import com.google.gson.Gson;
  *	https://mahout.apache.org/users/environment/how-to-build-an-app.html
  */
 public class UserSimilarityRecommender {
-	
-	private Gson gson = new Gson();
-	
+		
 	final static int NeighborhoodSize = 1;
 	final static double NeighborhoodThreshold = 0.1;
-	
-	@Override
-	public String render(Object model) {
-		return gson.toJson(model);
-	}	
 	
 	public static void main(String[] args) throws Exception {
 
@@ -84,9 +77,7 @@ public class UserSimilarityRecommender {
 		
 		Context context = new InitialContext();
 		DataSource dataSource = context.lookup("java:comp/env/" + ....dataSourceName);
-		context.close();		
-		
-		
+		context.close();
 		
 		// Define a data model.
 		// Connect to database.
@@ -100,9 +91,10 @@ public class UserSimilarityRecommender {
 			String preferenceColumn,
 			String timestampColumn);
 		
+		// Create a singleton instance of our recommender.
 		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
 		
-		// Install REST handler.
+		// Install REST handler that invokes our recommender.
 		// For info on SparkJava Web service framework (not related to Apache Spark):
 		//	http://blog.sahil.me/posts/simple-web-services-and-java/
 		//	http://sparkjava.com/
@@ -123,21 +115,12 @@ public class UserSimilarityRecommender {
 			
 			
 		}, new JsonTransformer());
-		
-		/*
-		UserSimilarityRecommender rec = new UserSimilarityRecommender();
-		List<RecommendedItem> recommendations = rec.recommend(
-			new File(filePath), NeighborhoodThreshold, userId, NoOfRecommendations);
-//			new File(filePath), NeighborhoodSize, userId, NoOfRecommendations);
-		
-		for (RecommendedItem recommendation : recommendations) {
-			System.out.println(recommendation.getItemID());
-		}
-		*/
 	}
 	
+	private DataModel model;
+	
 	protected UserSimilarityRecommender(DataModel model) {
-		....
+		this.model = model;
 	}
 	
 	public List<RecommendedItem> recommend(double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
@@ -160,7 +143,16 @@ public class UserSimilarityRecommender {
 		return recommendations;
 	}
 	
-	public static void printUsage() {
+	static class JsonTransformer implements ResponseTransformer {
+		private Gson gson = new Gson();
+		
+		@Override
+		public String render(Object model) {
+			return gson.toJson(model);
+		}
+	}
+	
+	static void printUsage() {
 		System.out.println("requires arguments:");
 		System.out.println("\tdatabase-URL");
 		System.out.println("\tdatabase-table-name");
