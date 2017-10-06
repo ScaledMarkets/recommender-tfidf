@@ -73,15 +73,20 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length != 1) {
+		if (args.length != 2) {
 			printUsage();
 			System.exit(1);
 		}
 		
 		// Parse the arguments.
 		String databaseURL = args[0];
+		String databaseTableName = args[1];
 		
-		DataSource dataSource = ....
+		Context context = new InitialContext();
+		DataSource dataSource = context.lookup("java:comp/env/" + ....dataSourceName);
+		context.close();		
+		
+		
 		
 		// Define a data model.
 		// Connect to database.
@@ -94,9 +99,6 @@ public class UserSimilarityRecommender {
 			String itemIDColumn,
 			String preferenceColumn,
 			String timestampColumn);
-		
-		
-		
 		
 		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
 		
@@ -161,5 +163,6 @@ public class UserSimilarityRecommender {
 	public static void printUsage() {
 		System.out.println("requires arguments:");
 		System.out.println("\tdatabase-URL");
+		System.out.println("\tdatabase-table-name");
 	}
 }
