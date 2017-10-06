@@ -25,8 +25,15 @@ import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
 // https://github.com/apache/mahout/tree/master/mr/src/main/java/org/apache/mahout/cf/taste/recommender
 import org.apache.mahout.cf.taste.recommender.Recommender;
 
+// https://github.com/apache/mahout/blob/master/mr/src/main/java/org/apache/mahout/cf/taste/model/JDBCDataModel.java
+import org.apache.mahout.cf.taste.model.JDBCDataModel;
+
+// https://github.com/apache/mahout/blob/08e02602e947ff945b9bd73ab5f0b45863df3e53/integration/src/main/java/org/apache/mahout/cf/taste/impl/model/jdbc/MySQLJDBCDataModel.java
+import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
+
 import java.io.File;
 import java.util.List;
+import javax.sql.DataSource;
 
 import static spark.Spark.*;
 import com.google.gson.Gson;
@@ -44,10 +51,6 @@ import com.google.gson.Gson;
  *
  * To use Apache Spark:
  *	https://mahout.apache.org/users/environment/how-to-build-an-app.html
- *
- * For info on SparkJava Web service framework (not related to Apache Spark):
- *	http://blog.sahil.me/posts/simple-web-services-and-java/
- *	http://sparkjava.com/
  */
 public class UserSimilarityRecommender {
 	
@@ -78,16 +81,29 @@ public class UserSimilarityRecommender {
 		// Parse the arguments.
 		String databaseURL = args[0];
 		
-		// Connect to database.
-		....
+		DataSource dataSource = ....
 		
 		// Define a data model.
-		DataModel model = ....
-		//DataModel model = new FileDataModel(csvFile);
+		// Connect to database.
+		// To use HDFS:
+		// https://mahout.apache.org/users/classification/bayesian.html
+		// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
+		JDBCDataModel model = new MySQLJDBCDataModel(DataSource dataSource,
+			String preferenceTable,
+			String userIDColumn,
+			String itemIDColumn,
+			String preferenceColumn,
+			String timestampColumn);
+		
+		
+		
 		
 		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
 		
 		// Install REST handler.
+		// For info on SparkJava Web service framework (not related to Apache Spark):
+		//	http://blog.sahil.me/posts/simple-web-services-and-java/
+		//	http://sparkjava.com/
 		get("/recommend", "application/json", (Request request, Response response) -> {
 			
 			String thresholdStr = request.queryParams("threshold");
@@ -103,8 +119,6 @@ public class UserSimilarityRecommender {
 				
 			....render output
 			
-			// https://mahout.apache.org/users/classification/bayesian.html
-			// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
 			
 		}, new JsonTransformer());
 		
