@@ -63,25 +63,6 @@ public class UserSimilarityRecommender {
 	
 	public static void main(String[] args) throws Exception {
 
-		get("/recommend", "application/json", (Request request, Response response) -> {
-			
-			String thresholdStr = request.queryParams("threshold");
-			String userIdStr = request.queryParams("userid");
-			String numOfRecsStr = request.queryParams("numberofrecs");
-			
-			....replace FileDataModel with a database
-			
-			// https://mahout.apache.org/users/classification/bayesian.html
-			// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
-			
-		}, new JsonTransformer());
-		
-			
-
-		
-		
-		
-		/*
 		if ((args.length >= 1) &&
 				(args[0].equals("-h") || args[0].equals("help") ||
 					args[0].equals("--help") || args[0].equals("-help"))) {
@@ -89,17 +70,45 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length != 2) {
+		if (args.length != 1) {
 			printUsage();
 			System.exit(1);
 		}
 		
-		// Obtain the user Id from the arguments.
-		String filePath = args[0];
-		long userId = Long.parseLong(args[1]);
+		// Parse the arguments.
+		String databaseURL = args[0];
 		
-		final int NoOfRecommendations = 10;
+		// Connect to database.
+		....
 		
+		// Define a data model.
+		DataModel model = ....
+		//DataModel model = new FileDataModel(csvFile);
+		
+		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
+		
+		// Install REST handler.
+		get("/recommend", "application/json", (Request request, Response response) -> {
+			
+			String thresholdStr = request.queryParams("threshold");
+			String userIdStr = request.queryParams("userid");
+			String numOfRecsStr = request.queryParams("numberofrecs");
+			
+			double threshold = ....
+			long userId = ....
+			int noOfRecs = ....
+
+			List<RecommendedItem> recommendations = 
+				recommender.recommend(threshold, userId, noOfRecs);
+				
+			....render output
+			
+			// https://mahout.apache.org/users/classification/bayesian.html
+			// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
+			
+		}, new JsonTransformer());
+		
+		/*
 		UserSimilarityRecommender rec = new UserSimilarityRecommender();
 		List<RecommendedItem> recommendations = rec.recommend(
 			new File(filePath), NeighborhoodThreshold, userId, NoOfRecommendations);
@@ -111,18 +120,17 @@ public class UserSimilarityRecommender {
 		*/
 	}
 	
-	public List<RecommendedItem> recommend(File csvFile, double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
-		
-		// Define a data model.
-		DataModel model = new FileDataModel(csvFile);
+	protected UserSimilarityRecommender(DataModel model) {
+		....
+	}
+	
+	public List<RecommendedItem> recommend(double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
 		
 		// Select a user similarity strategy.
-		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
+		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(this.model);
 		UserNeighborhood neighborhood =
 			new ThresholdUserNeighborhood(
 				neighborhoodThreshold, userSimilarity, model);
-//			new NearestNUserNeighborhood(
-//				neighborhoodSize, userSimilarity, model);
 		
 		// Create a recommender.
 		Recommender recommender =
@@ -136,12 +144,8 @@ public class UserSimilarityRecommender {
 		return recommendations;
 	}
 	
-	/*
 	public static void printUsage() {
 		System.out.println("requires arguments:");
-		System.out.println("\tfile-path - location of csv file, containing lines\n" +
-			"\t\tof the form \"userID,itemID,prefValue\" (e.g. \"39505,290002,3.5\")");
-		System.out.println("\tuserID - the user for which to provide recommendations");
+		System.out.println("\tdatabase-URL");
 	}
-	*/
 }
