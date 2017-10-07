@@ -117,10 +117,9 @@ public class UserSimilarityRecommender {
 			double threshold = Double.parseDouble(thresholdStr);
 			long userId = Long.parseLong(userIdStr);
 
-			RecommendedItem rec;
-			List<RecommendedItem> recs = 
-				recommender.recommend(threshold, userId, 1);
+			List<RecommendedItem> recs = recommender.recommend(threshold, userId, 1);
 			
+			RecommendedItem rec;
 			if (recs.size() == 0) {
 				rec = null;
 			} else if (recs.size() == 1) {
@@ -144,6 +143,9 @@ public class UserSimilarityRecommender {
 		this.model = model;
 	}
 	
+	/**
+	 * Use Mahout to analyze the data and generate a recommendation.
+	 */
 	public List<RecommendedItem> recommend(double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
 		
 		// Select a user similarity strategy.
@@ -174,7 +176,7 @@ public class UserSimilarityRecommender {
 	}
 	
 	static class NoRecommendationMessage {
-		public String message = "No recommendations";
+		public String message = "No recommendation";
 		public String getMessage() { return this.message; }
 		public void setMessage(String message) { this.message = message; }
 	}
@@ -194,20 +196,14 @@ public class UserSimilarityRecommender {
 		public void setValue(float v) { this.value = v; }
 	}
 	
-	static class JsonTransformer implements ResponseTransformer {
-	
-		private Gson gson = new Gson();
-	
-		@Override
-		public String render(Object model) {
-			return gson.toJson(model);
-		}
-	
-	}
-	
 	static void printUsage() {
 		System.out.println("requires arguments:");
-		System.out.println("\tdatabase-URL");
-		System.out.println("\tdatabase-table-name");
+		System.out.println("\tdatabase-name");
+		System.out.println("\tdatabase-host");
+		System.out.println("\tdatabase-port");
+		System.out.println("\tdatabase-username");
+		System.out.println("\tdatabase-password");
+		System.out.println("\tdatabase-table-name - table must contain columns\n" +
+			"\t\t'UserID', 'ItemID', 'Preference', and 'Timestamp'.");
 	}
 }
