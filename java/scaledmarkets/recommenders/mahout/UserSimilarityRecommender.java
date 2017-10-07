@@ -34,14 +34,16 @@ import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import java.io.File;
 import java.util.List;
 import javax.sql.DataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
-import static spark.Spark.*;
+import static spark.Spark.get;
 import com.google.gson.Gson;
 
 /**
  * Obtain a recommendation for a specified user, based on the user's similarity
  * to other users, in terms of the preferences that the user has expressed for
- * a set of items.
+ * a set of items. User preference history must be provided in a MySQL table
+ * that has columns 'UserID', 'ItemID', 'Preference', 'Timestamp'.
  * 
  * Code comes from example at,
  *	https://mahout.apache.org/users/recommender/recommender-documentation.html
@@ -72,24 +74,33 @@ public class UserSimilarityRecommender {
 		}
 		
 		// Parse the arguments.
-		String databaseURL = args[0];
-		String databaseTableName = args[1];
+		String dbName = args[0];
+		String dbHostname = args[1];
+		String dbPortStr = args[2];
+		String dbUsername = args[3];
+		String dbPassword = args[4];
+		String databaseTableName = args[5];
 		
-		Context context = new InitialContext();
-		DataSource dataSource = context.lookup("java:comp/env/" + ....dataSourceName);
-		context.close();
+		int dbPort = Integer.parseInt(dbPortStr);
+		
+		ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		dataSource.setUser(dbUsername);
+		dataSource.setPassword(dbPassword);
+		dataSource.setServerName(dbHostname);
+		dataSource.setPort(dbPort);
+		dataSource.setDatabaseName(dbName);
 		
 		// Define a data model.
 		// Connect to database.
 		// To use HDFS:
 		// https://mahout.apache.org/users/classification/bayesian.html
 		// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
-		JDBCDataModel model = new MySQLJDBCDataModel(DataSource dataSource,
-			String preferenceTable,
-			String userIDColumn,
-			String itemIDColumn,
-			String preferenceColumn,
-			String timestampColumn);
+		JDBCDataModel model = new MySQLJDBCDataModel(dataSource,
+			databaseTableName,
+			"UserID",
+			"ItemID",
+			"Preference",
+			"Timestamp");
 		
 		// Create a singleton instance of our recommender.
 		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
@@ -129,7 +140,7 @@ public class UserSimilarityRecommender {
 	
 	private DataModel model;
 	
-	protected UserSimilarityRecommender(DataModel model) {
+	UserSimilarityRecommender(DataModel model) {
 		this.model = model;
 	}
 	
@@ -169,10 +180,6 @@ public class UserSimilarityRecommender {
 	}
 	
 	static class RecommendationMessage {
-		RecommendationMessage() {
-			
-		}
-		
 		public RecommendationMessage(long itemID, float value) {
 			this.itemID = itemID;
 			this.value = value;
@@ -187,7 +194,7 @@ public class UserSimilarityRecommender {
 		public void setValue(float v) { this.value = v; }
 	}
 	
-	public static class JsonTransformer implements ResponseTransformer {
+	static class JsonTransformer implements ResponseTransformer {
 	
 		private Gson gson = new Gson();
 	
