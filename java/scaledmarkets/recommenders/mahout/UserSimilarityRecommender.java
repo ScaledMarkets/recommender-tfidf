@@ -102,19 +102,29 @@ public class UserSimilarityRecommender {
 			
 			String thresholdStr = request.queryParams("threshold");
 			String userIdStr = request.queryParams("userid");
-			String numOfRecsStr = request.queryParams("numberofrecs");
 			
-			double threshold = ....
-			long userId = ....
-			int noOfRecs = ....
+			double threshold = Double.parseDouble(thresholdStr);
+			long userId = Long.parseLong(userIdStr);
 
-			List<RecommendedItem> recommendations = 
-				recommender.recommend(threshold, userId, noOfRecs);
+			RecommendedItem rec;
+			List<RecommendedItem> recs = 
+				recommender.recommend(threshold, userId, 1);
+			
+			if (recs.size() == 0) {
+				rec = null;
+			} else if (recs.size() == 1) {
+				rec = recs.get(0);
+			} else throw new RuntimeException(
+				"Multiple recommendations returned");
 				
-			....render output
+			// Construct output message.
+			if (rec == null) {
+				return new NoRecommendationMessage();
+			} else {
+				return new RecommendationMessage(rec.getItemID(), rec.getValue());
+			}
 			
-			
-		}, new JsonTransformer());
+		}, new JsonTransformer());  // render message as JSON
 	}
 	
 	private DataModel model;
@@ -150,6 +160,42 @@ public class UserSimilarityRecommender {
 		public String render(Object model) {
 			return gson.toJson(model);
 		}
+	}
+	
+	static class NoRecommendationMessage {
+		public String message = "No recommendations";
+		public String getMessage() { return this.message; }
+		public void setMessage(String message) { this.message = message; }
+	}
+	
+	static class RecommendationMessage {
+		RecommendationMessage() {
+			
+		}
+		
+		public RecommendationMessage(long itemID, float value) {
+			this.itemID = itemID;
+			this.value = value;
+		}
+		
+		public long itemID;
+		public float value;
+		
+		public long getItemID() { return this.itemID; }
+		public void setItemID(long id) { this.itemID = id; }
+		public float getValue() { return this.value; }
+		public void setValue(float v) { this.value = v; }
+	}
+	
+	public static class JsonTransformer implements ResponseTransformer {
+	
+		private Gson gson = new Gson();
+	
+		@Override
+		public String render(Object model) {
+			return gson.toJson(model);
+		}
+	
 	}
 	
 	static void printUsage() {
