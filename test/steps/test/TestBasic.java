@@ -1,7 +1,6 @@
 package test;
 
 import scaledmarkets.recommenders.mahout.*;
-import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 
 import cucumber.api.Format;
 import cucumber.api.java.Before;
@@ -9,6 +8,10 @@ import cucumber.api.java.After;
 import cucumber.api.java.en.Given;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
+
+import com.google.gson.Gson;
+
+import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -18,7 +21,7 @@ import static test.Utils.*;
 
 public class TestBasic extends TestBase {
 	
-	private File csvFile;
+	private DataModel model;
 	private List<RecommendedItem> recommendations;
 	
 	// From example at,
@@ -26,8 +29,8 @@ public class TestBasic extends TestBase {
 	@Given("^four users and their item preferences$")
 	public void four_users_and_their_item_preferences() throws Exception {
 		
-		this.csvFile = new File("TestBasic.csv");
-		PrintWriter pw = new PrintWriter(this.csvFile);
+		File csvFile = new File("TestBasic.csv");
+		PrintWriter pw = new PrintWriter(csvFile);
 		
 		// User 1
 		pw.println("1,10,1.0");
@@ -70,12 +73,16 @@ public class TestBasic extends TestBase {
 		pw.println("4,18,1.0");
 		
 		pw.close();
+		
+		this.model = new FileDataModel(csvFile);
 	}
 	
 	@Given("^ten users with identical item preferences$")
 	public void ten_users_with_identical_item_preferences() throws Exception {
-		this.csvFile = new File("TestBasic.csv");
-		PrintWriter pw = new PrintWriter(this.csvFile);
+		
+		File csvFile = new File("TestBasic.csv");
+		PrintWriter pw = new PrintWriter(csvFile);
+
 		pw.println("1,100,3.5");
 		pw.println("1,101,2.8");
 		pw.println("1,105,1.1");
@@ -123,15 +130,36 @@ public class TestBasic extends TestBase {
 		
 		pw.println("10,100,3.5");
 		pw.println("10,101,2.8");
-		pw.println("10,105,1.1");
-		pw.println("10,115,3.4");
 		pw.close();
+		
+		this.model = new FileDataModel(csvFile);
 	}
 	
-	@When("^I request two recommendations for a user$")
-	public void i_request_two_recommendations_for_a_user() throws Exception {
+	@Given("^four users and their item preferences in a database$")
+	public void four_users_and_their_item_preferences_in_a_database() throws Exception {
+		
+		....populate database
+		
+		
+		ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		dataSource.setUser(dbUsername);
+		dataSource.setPassword(dbPassword);
+		dataSource.setServerName(dbHostname);
+		dataSource.setPort(dbPort);
+		dataSource.setDatabaseName(dbName);
+
+		this.model = new MySQLJDBCDataModel(dataSource,
+			databaseTableName,
+			"UserID",
+			"ItemID",
+			"Preference",
+			"Timestamp");
+	}
+	
+	@When("^I locally request two recommendations for a user$")
+	public void i_locally_request_two_recommendations_for_a_user() throws Exception {
 		double neighborhoodThreshold = 0.1;
-		long userId = 2;
+		long userId = 10;
 		
 		/*
 		RecommenderBuilder builder = new RecommenderBuilder() {
@@ -149,14 +177,20 @@ public class TestBasic extends TestBase {
 		System.out.println(result);		
 		*/
 		
-		
-		this.recommendations = (new UserSimilarityRecommender()).recommend(
-			this.csvFile, neighborhoodThreshold, userId, 2);
+		this.recommendations = (new UserSimilarityRecommender(this.model)).recommend(
+			neighborhoodThreshold, userId, 2);
 		
 		System.out.println("Recommended items (" + this.recommendations.size() + "):");
 		for (RecommendedItem recommendation : this.recommendations) {
 			System.out.println(recommendation.getItemID());
 		}
+	}
+	
+	@When("^I remotely request two recommendations for a user$")
+	public void i_remotely_request_two_recommendations_for_a_user() throws Exception {
+		
+		....Make remote GET request, and verify the JSON response
+		
 	}
 	
 	@Then("^I obtain two recommendations$")

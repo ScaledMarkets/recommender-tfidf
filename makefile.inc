@@ -1,4 +1,8 @@
+#
 # Configurations pertaining to the build environment.
+#
+
+# Define locations of external resources.
 
 export maxerrs = 5
 export HOME := $(shell echo ~)

@@ -173,7 +173,7 @@ $(USERSIMRECIMAGEBUILDDIR):
 usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
-	# Copy other jars:
+	# Copy other jars that the runtime needs:
 	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr
 	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
 	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
@@ -201,17 +201,27 @@ $(test_build_dir):
 
 compile_tests: $(test_build_dir)
 	javac -Xmaxerrs $(maxerrs) \
-		-cp $(CUCUMBER_CP):$(MAHOUT_CP):$(test_build_dir):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
+		-cp $(jar_dir)/$(USERSIMREC_JAR_NAME):$(CUCUMBER_CP):$(MAHOUT_CP):$(test_build_dir) \
 		-d $(test_build_dir) \
 		$(test_dir)/steps/$(test_package)/*.java
 
-test_usersimrec: compile_tests
-	java -cp $(MAHOUT_CP):$(CUCUMBER_CP):$(test_build_dir):$(MYSQL_JDBC_CP):$(SPARK_CP):$(GSON_CP):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
+# Deploy for test and run acceptance tests.
+
+unit_usersimrec: compile_tests usersimrec_jar
+	# Run unit tests.
+	java -cp $(CUCUMBER_CP):$(test_build_dir) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
-		--tags @done --tags @usersimrec
+		--tags @done --tags @usersimrec --tags @file
 
-test: test_usersimrec
+accept_usersimrec: compile_tests usersimrecimage
+	docker-compose up ....provide credentials, etc.
+	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP) \
+		cucumber.api.cli.Main \
+		--glue $(test_package) $(test_dir)/features \
+		--tags @done --tags @usersimrec --tags @database
+
+test: unit_usersimrec accept_usersimrec
 
 # Housekeeping.
 

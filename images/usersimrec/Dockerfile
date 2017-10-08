@@ -1,4 +1,4 @@
-FROM docker.io/centos:7
+FROM docker.io/centos:7  ....need to use an image that has Java 9
 
 # Create directories:
 RUN mkdir /recommender-usersim
