@@ -44,6 +44,8 @@ import com.google.gson.Gson;
  * to other users, in terms of the preferences that the user has expressed for
  * a set of items. User preference history must be provided in a MySQL table
  * that has columns 'UserID', 'ItemID', 'Preference', 'Timestamp'.
+ * This implementation is intended for small datasets. For large datasets, use
+ * the Hadoop based implemenation, UserSimilarityRecommenderJob, which uses HDFS.
  * 
  * Code comes from example at,
  *	https://mahout.apache.org/users/recommender/recommender-documentation.html

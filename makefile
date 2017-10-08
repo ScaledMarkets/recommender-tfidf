@@ -31,7 +31,7 @@ test_package := test
 # For finding similar documents, use "More Like This":
 #	https://lucene.apache.org/solr/guide/6_6/morelikethis.html
 
-# Locations: -------------------------------------------------------------------
+# Locations of generated artifacts: --------------------------------------------
 
 PROJECTROOT := $(shell pwd)
 JAVASRCDIR := $(PROJECTROOT)/java
@@ -46,25 +46,6 @@ test_build_dir := $(PROJECTROOT)/test/classes
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
-
-# Java dependencies: -----------------------------------------------------------
-
-SOLR_CP := $(SOLR_HOME)/dist/*
-SOLR_CP := $(SOLR_CP):$(SOLR_HOME)/dist/solrj-lib/*
-
-MAHOUT_CP := $(MAHOUT_HOME)/*
-MAHOUT_CP := $(MAHOUT_CP):$(MAHOUT_HOME)/lib/*
-#MAHOUT_CP := $(MAHOUT_HOME)/mahout-mr-0.13.0.jar
-#MAHOUT_CP := $(MAHOUT_CP):$(MAHOUT_HOME)/lib/guava-14.0.1.jar
-
-CUCUMBER_CP := $(CUCUMBER_HOME)/cucumber-core-1.1.8.jar
-CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-java-1.1.8.jar
-CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/cucumber-jvm-deps-1.0.3.jar
-CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-2.12.2.jar
-#CUCUMBER_CP := $(CUCUMBER_CP):$(CUCUMBER_HOME)/gherkin-jvm-deps-1.0.3.jar
-
-#SLF4J_CP := $(SLF4J_HOME)/slf4j-api-1.7.25.jar
-#SLF4J_CP := $(SLF4J_CP):$(SLF4J_HOME)/slf4j-simple-1.7.25.jar
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -102,7 +83,7 @@ $(USERSIMRECJAVABUILDDIR):
 
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) \
-		-cp $(MAHOUT_CP) \
+		-cp $(MAHOUT_CP):$(MYSQL_JDBC_CP):$(SPARK_CP):$(GSON_CP) \
 		-d $(USERSIMRECJAVABUILDDIR) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java
 
@@ -192,6 +173,21 @@ $(USERSIMRECIMAGEBUILDDIR):
 usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
+	# Copy other jars:
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mysql
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/sparkjava
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/gson
+	cp $(SOLR_HOME)/dist/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr
+	cp $(SOLR_HOME)/dist/solrj-lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
+	cp $(MAHOUT_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
+	cp $(MAHOUT_HOME)/lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
+	cp $(MYSQL_JDBC_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mysql
+	cp $(SparkJavaHome)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/sparkjava
+	cp $(GSON_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/gson
 	PROJECTNAME=$(PROJECTNAME) USERSIMREC_JAR_NAME=$(USERSIMREC_JAR_NAME) docker build \
 		--tag=$(UserSimRecImageName) $(USERSIMRECIMAGEBUILDDIR)
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
@@ -210,7 +206,7 @@ compile_tests: $(test_build_dir)
 		$(test_dir)/steps/$(test_package)/*.java
 
 test_usersimrec: compile_tests
-	java -cp $(MAHOUT_CP):$(CUCUMBER_CP):$(test_build_dir):$(CUCUMBER_CP):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
+	java -cp $(MAHOUT_CP):$(CUCUMBER_CP):$(test_build_dir):$(MYSQL_JDBC_CP):$(SPARK_CP):$(GSON_CP):$(jar_dir)/$(USERSIMREC_JAR_NAME) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec
