@@ -138,7 +138,7 @@ public class TestBasic extends TestBase {
 	@Given("^four users and their item preferences in a database$")
 	public void four_users_and_their_item_preferences_in_a_database() throws Exception {
 		
-		....populate database
+		....clear database and populate it
 		
 		
 		ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
@@ -153,7 +153,7 @@ public class TestBasic extends TestBase {
 			"UserID",
 			"ItemID",
 			"Preference",
-			"Timestamp");
+			null);
 	}
 	
 	@When("^I locally request two recommendations for a user$")

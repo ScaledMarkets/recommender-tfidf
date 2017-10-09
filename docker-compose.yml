@@ -9,7 +9,7 @@ services:
       - MYSQL_USER=${MYSQL_USER}
       - MYSQL_PASSWORD=${MYSQL_PASSWORD}
     # If database is empty, then create schema and load data from loaddata.
-    # Schema: "UserData" has columns 'UserID', 'ItemID', 'Preference', and 'Timestamp'.
+    # Schema: "UserData" has columns 'UserID', 'ItemID', and 'Preference'.
     # Ref: https://stackoverflow.com/questions/29145370/how-can-i-initialize-a-mysql-database-with-schema-in-a-docker-container
     ports:
       - 3306
@@ -21,7 +21,7 @@ services:
   recommender:
     image: ${UserSimRecImageName}
     # Provice arguments for the entrypoint, which is specified in the Dockerfile:
-    command: ["mysql", "localhost", "3306", "UserData", "${MYSQL_USER}", "${MYSQL_PASSWORD}"]
+    command: ["mysql", "localhost", "3306", "UserPrefs", "${MYSQL_USER}", "${MYSQL_PASSWORD}"]
     depends_on:
       - mysql
     links:

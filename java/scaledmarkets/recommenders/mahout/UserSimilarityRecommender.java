@@ -43,7 +43,7 @@ import com.google.gson.Gson;
  * Obtain a recommendation for a specified user, based on the user's similarity
  * to other users, in terms of the preferences that the user has expressed for
  * a set of items. User preference history must be provided in a MySQL table
- * that has columns 'UserID', 'ItemID', 'Preference', 'Timestamp'.
+ * that has columns 'UserID', 'ItemID', and 'Preference'.
  * This implementation is intended for small datasets. For large datasets, use
  * the Hadoop based implemenation, UserSimilarityRecommenderJob, which uses HDFS.
  * 
@@ -102,7 +102,7 @@ public class UserSimilarityRecommender {
 			"UserID",
 			"ItemID",
 			"Preference",
-			"Timestamp");
+			null);
 		
 		// Create a singleton instance of our recommender.
 		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
@@ -204,7 +204,7 @@ public class UserSimilarityRecommender {
 		System.out.println("\tdatabase-host");
 		System.out.println("\tdatabase-port");
 		System.out.println("\tdatabase-table-name - table must contain columns\n" +
-			"\t\t'UserID', 'ItemID', 'Preference', and 'Timestamp'.");
+			"\t\t'UserID', 'ItemID', and 'Preference'.");
 		System.out.println("\tdatabase-username");
 		System.out.println("\tdatabase-password");
 	}

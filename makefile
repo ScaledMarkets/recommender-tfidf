@@ -214,14 +214,18 @@ unit_usersimrec: compile_tests usersimrec_jar
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @file
 
-# Deploy for test and run acceptance tests.
+# Deploy the current for test.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
-
-accept_usersimrec: compile_tests usersimrecimage
+deploy: 
+	docker volume create dbcreate
+	cp create_schema.sql dbcreate
 	UserSimRecImageName=$(UserSimRecImageName) \
 		MYSQL_ROOT_PASSWORD=test \
 		MYSQL_USER=test MYSQL_PASSWORD=test \
 		docker-compose up
+
+# Run acceptance tests.
+accept_usersimrec: compile_tests deploy
 	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
@@ -238,6 +242,7 @@ clean:
 	rm -r -f $(SEARCHIMAGEBUILDDIR)
 	rm -r -f $(USERSIMRECJAVABUILDDIR)/*
 	rm -r -f $(USERSIMRECIMAGEBUILDDIR)
+	docker volume rm dbcreate
 
 info:
 	@echo "Makefile for $(PRODUCTNAME)"
