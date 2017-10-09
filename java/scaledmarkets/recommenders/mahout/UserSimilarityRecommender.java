@@ -79,9 +79,9 @@ public class UserSimilarityRecommender {
 		String dbName = args[0];
 		String dbHostname = args[1];
 		String dbPortStr = args[2];
-		String dbUsername = args[3];
-		String dbPassword = args[4];
-		String databaseTableName = args[5];
+		String databaseTableName = args[3];
+		String dbUsername = args[4];
+		String dbPassword = args[5];
 		
 		int dbPort = Integer.parseInt(dbPortStr);
 		
@@ -203,9 +203,9 @@ public class UserSimilarityRecommender {
 		System.out.println("\tdatabase-name");
 		System.out.println("\tdatabase-host");
 		System.out.println("\tdatabase-port");
-		System.out.println("\tdatabase-username");
-		System.out.println("\tdatabase-password");
 		System.out.println("\tdatabase-table-name - table must contain columns\n" +
 			"\t\t'UserID', 'ItemID', 'Preference', and 'Timestamp'.");
+		System.out.println("\tdatabase-username");
+		System.out.println("\tdatabase-password");
 	}
 }

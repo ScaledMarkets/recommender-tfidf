@@ -26,5 +26,6 @@ ADD ["jars/gson/*.jar", "/jars/gson"]
 # Set working directory:
 WORKDIR /recommender-usersim/
 
-# Run the command that starts the recommender service:
-#CMD ["java", "-cp", "/recommender-usersim/*:/jars/solr/*:/jars/solr/solrj-lib/*:/jars/mahout/*:/jars/mahout/lib/*:/jars/mysql/*:/jars/sparkjava/*:/jars/gson/*", "scaledmarkets.recommenders.mahout.UserSimilarityRecommender"]
+# Run the command that starts the recommender service.
+# Command arguments are provided by the docker-compose file 'command'.
+ENTRYPOINT ["java", "-cp", "/recommender-usersim/*:/jars/solr/*:/jars/solr/solrj-lib/*:/jars/mahout/*:/jars/mahout/lib/*:/jars/mysql/*:/jars/sparkjava/*:/jars/gson/*", "scaledmarkets.recommenders.mahout.UserSimilarityRecommender"]

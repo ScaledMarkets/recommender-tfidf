@@ -205,7 +205,7 @@ compile_tests: $(test_build_dir)
 		-d $(test_build_dir) \
 		$(test_dir)/steps/$(test_package)/*.java
 
-# Deploy for test and run acceptance tests.
+# Run unit tests.
 
 unit_usersimrec: compile_tests usersimrec_jar
 	# Run unit tests.
@@ -214,8 +214,14 @@ unit_usersimrec: compile_tests usersimrec_jar
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @file
 
+# Deploy for test and run acceptance tests.
+# Note: change this to use a mysql config file, and use a mysql acct other than root.
+
 accept_usersimrec: compile_tests usersimrecimage
-	docker-compose up ....provide credentials, etc.
+	UserSimRecImageName=$(UserSimRecImageName) \
+		MYSQL_ROOT_PASSWORD=test \
+		MYSQL_USER=test MYSQL_PASSWORD=test \
+		docker-compose up
 	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
