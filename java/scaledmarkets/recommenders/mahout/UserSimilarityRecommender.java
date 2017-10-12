@@ -34,7 +34,8 @@ import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import java.io.File;
 import java.util.List;
 import javax.sql.DataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+//import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import static spark.Spark.get;
 import com.google.gson.Gson;
@@ -85,7 +86,8 @@ public class UserSimilarityRecommender {
 		
 		int dbPort = Integer.parseInt(dbPortStr);
 		
-		ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		DataSource dataSource = new MysqlDataSource();
+		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
 		dataSource.setUser(dbUsername);
 		dataSource.setPassword(dbPassword);
 		dataSource.setServerName(dbHostname);

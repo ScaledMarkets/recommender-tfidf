@@ -1,32 +1,39 @@
 version: '3'
 services:
+  # Note: The mysql image does not work under Docker for Mac - one cannot access
+  # it. Instead, use true Linux version.
   mysql:
     container_name: mysql
     image: mysql:8.0.3
     environment:
-      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_ROOT_PASSWORD=test
       - MYSQL_DATABASE=mysql
-      - MYSQL_USER=${MYSQL_USER}
-      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test
+      #- MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      #- MYSQL_DATABASE=mysql
+      #- MYSQL_USER=${MYSQL_USER}
+      #- MYSQL_PASSWORD=${MYSQL_PASSWORD}
     # If database is empty, then create schema and load data from loaddata.
     # Schema: "UserData" has columns 'UserID', 'ItemID', and 'Preference'.
     # Ref: https://stackoverflow.com/questions/29145370/how-can-i-initialize-a-mysql-database-with-schema-in-a-docker-container
     ports:
-      - 3306
+      - 3306:3306
     restart: always
     volumes:
       - "dbdata:/var/lib/mysql"
       - "dbcreate:/docker-entrypoint-initdb.d"
-    links:
   recommender:
-    image: ${UserSimRecImageName}
-    # Provice arguments for the entrypoint, which is specified in the Dockerfile:
-    command: ["mysql", "localhost", "3306", "UserPrefs", "${MYSQL_USER}", "${MYSQL_PASSWORD}"]
+    image: scaledmarkets/recommender_tfidf-usersimrec
+    #image: ${UserSimRecImageName}
+    # Provide arguments for the entrypoint, which is specified in the Dockerfile:
+    command: ["mysql", "localhost", "3306", "UserPrefs", "test", "test"]
+    #command: ["mysql", "localhost", "3306", "UserPrefs", "${MYSQL_USER}", "${MYSQL_PASSWORD}"]
     depends_on:
       - mysql
     links:
       - mysql
 volumes:
-  dbdata
+  dbdata:
   dbcreate:
     external: true

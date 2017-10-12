@@ -5,21 +5,21 @@ include makefile.inc
 
 # Names: -----------------------------------------------------------------------
 
-PRODUCTNAME := TF-IDF Recommender
-ORG := Scaled Markets
-VERSION := 0.1
-PROJECTNAME := recommender_tfidf
-pop_main_class := scaledmarkets.recommenders.solr.SolrjPopulator
-search_main_class := scaledmarkets.recommenders.solr.SolrjSearcher
-usersimrec_main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
-CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
-POP_JAR_NAME := $(PROJECTNAME)-pop.jar
-SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
-USERSIMREC_JAR_NAME := $(PROJECTNAME)-usersimrec.jar
-PopImageName := scaledmarkets/$(PROJECTNAME)-pop
-SearchImageName := scaledmarkets/$(PROJECTNAME)-search
-UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
-test_package := test
+export PRODUCTNAME := TF-IDF Recommender
+export ORG := Scaled Markets
+export VERSION := 0.1
+export PROJECTNAME := recommender_tfidf
+export pop_main_class := scaledmarkets.recommenders.solr.SolrjPopulator
+export search_main_class := scaledmarkets.recommenders.solr.SolrjSearcher
+export usersimrec_main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
+export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
+export POP_JAR_NAME := $(PROJECTNAME)-pop.jar
+export SEARCH_JAR_NAME := $(PROJECTNAME)-search.jar
+export USERSIMREC_JAR_NAME := $(PROJECTNAME)-usersimrec.jar
+export PopImageName := scaledmarkets/$(PROJECTNAME)-pop
+export SearchImageName := scaledmarkets/$(PROJECTNAME)-search
+export UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
+export test_package := test
 
 # References: ------------------------------------------------------------------
 
@@ -33,16 +33,16 @@ test_package := test
 
 # Locations of generated artifacts: --------------------------------------------
 
-PROJECTROOT := $(shell pwd)
-JAVASRCDIR := $(PROJECTROOT)/java
-POPJAVABUILDDIR := $(PROJECTROOT)/classes/pop
-SEARCHJAVABUILDDIR := $(PROJECTROOT)/classes/search
-USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
-POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
-SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
-USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
-test_dir := $(PROJECTROOT)/test
-test_build_dir := $(PROJECTROOT)/test/classes
+export PROJECTROOT := $(shell pwd)
+export JAVASRCDIR := $(PROJECTROOT)/java
+export POPJAVABUILDDIR := $(PROJECTROOT)/classes/pop
+export SEARCHJAVABUILDDIR := $(PROJECTROOT)/classes/search
+export USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
+export POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
+export SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
+export USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
+export test_dir := $(PROJECTROOT)/test
+export test_build_dir := $(PROJECTROOT)/test/classes
 
 # Tools: -----------------------------------------------------------------------
 SHELL := /bin/sh
@@ -217,8 +217,9 @@ unit_usersimrec: compile_tests usersimrec_jar
 # Deploy the current for test.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
 deploy: 
-	docker volume create dbcreate
-	cp create_schema.sql dbcreate
+	sudo docker volume create dbcreate
+	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
+	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
 	UserSimRecImageName=$(UserSimRecImageName) \
 		MYSQL_ROOT_PASSWORD=test \
 		MYSQL_USER=test MYSQL_PASSWORD=test \

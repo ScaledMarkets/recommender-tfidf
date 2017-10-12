@@ -17,6 +17,14 @@ import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
 
+import javax.sql.DataSource;
+import java.sql.Connection;
+
+import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+//import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+
+
+
 import static test.Utils.*;
 
 public class TestBasic extends TestBase {
@@ -135,21 +143,82 @@ public class TestBasic extends TestBase {
 		this.model = new FileDataModel(csvFile);
 	}
 	
+	/*
+	 * MySql command reference:
+	 *	http://www.pantz.org/software/mysql/mysqlcommands.html
+	 */
 	@Given("^four users and their item preferences in a database$")
 	public void four_users_and_their_item_preferences_in_a_database() throws Exception {
 		
-		....clear database and populate it
-		
-		
-		ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		DataSource dataSource = new MysqlDataSource();
+		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
 		dataSource.setUser(dbUsername);
 		dataSource.setPassword(dbPassword);
 		dataSource.setServerName(dbHostname);
 		dataSource.setPort(dbPort);
 		dataSource.setDatabaseName(dbName);
 
+		// Clear database and populate it.
+		Connection con = null;
+		Statement stmt = null;
+		ResultSet null;
+		try {
+			con = ds.getConnection();
+			stmt = con.createStatement();
+			stmt.executeUpdate("DELETE FROM UserPrefs WHERE UserID = *");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,10,1.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,11,2.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,12,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,13,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,14,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,15,4.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,16,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,17,1.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,18,5.0)");
+			
+			// User 2
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,10,1.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,11,2.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,15,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,16,4.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,17,1.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,18,5.0)");
+			
+			// User 3
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,11,2.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,12,4.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,13,4.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,14,3.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,15,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,16,4.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,17,4.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,18,5.0)");
+			
+			// User 4
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,10,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,11,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,12,5.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,13,0.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,14,2.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,15,3.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,16,1.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,17,4.0)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,18,1.0)");
+		} catch (SQLException ex) {
+			e.printStackTrace();
+		} finally {
+			try {
+				if(rs != null) rs.close();
+				if(stmt != null) stmt.close();
+				if(con != null) con.close();
+			} catch (SQLException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		// Connect mahout to database.
 		this.model = new MySQLJDBCDataModel(dataSource,
-			databaseTableName,
+			"UserPrefs",
 			"UserID",
 			"ItemID",
 			"Preference",
