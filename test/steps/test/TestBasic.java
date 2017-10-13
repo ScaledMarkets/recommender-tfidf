@@ -1,6 +1,6 @@
 package test;
 
-import scaledmarkets.recommenders.mahout.*;
+import scaledmarkets.recommenders.mahout.UserSimilarityRecommender;
 
 import scaledmarkets.recommenders.messages.Messages.Message;
 import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
@@ -17,21 +17,26 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
+import org.apache.mahout.cf.taste.model.DataModel;
+import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
+import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
+import java.util.LinkedList;
 
 import javax.sql.DataSource;
 import java.sql.Connection;
+import java.sql.Statement;
 
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 //import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
-import com.sun.jersey.api.client.Client;
-import com.sun.jersey.api.client.ClientResponse;
-import com.sun.jersey.api.client.WebResource;
-
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.ClientBuilder;
+import javax.ws.rs.core.Response;
+import javax.ws.rs.client.WebTarget;
 
 import static test.Utils.*;
 
@@ -158,19 +163,19 @@ public class TestBasic extends TestBase {
 	@Given("^four users and their item preferences in a database$")
 	public void four_users_and_their_item_preferences_in_a_database() throws Exception {
 		
-		DataSource dataSource = new MysqlDataSource();
+		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
-		dataSource.setUser(dbUsername);
-		dataSource.setPassword(dbPassword);
-		dataSource.setServerName(dbHostname);
-		dataSource.setPort(dbPort);
-		dataSource.setDatabaseName(dbName);
+		dataSource.setUser("test");
+		dataSource.setPassword("test");
+		dataSource.setServerName("127.0.0.1");
+		dataSource.setPort(3306);
+		dataSource.setDatabaseName("test");
 
 		// Clear database and populate it.
 		Connection con = null;
 		Statement stmt = null;
 		try {
-			con = ds.getConnection();
+			con = dataSource.getConnection();
 			stmt = con.createStatement();
 			
 			// User 1
@@ -261,30 +266,28 @@ public class TestBasic extends TestBase {
 	public void i_remotely_request_a_recommendation_for_a_user() throws Exception {
 		
 		// Re-initialize the expected result container.
-		this.recommendations = new List<RecommendedItem>();
+		this.recommendations = new LinkedList<RecommendedItem>();
 		
 		// Make remote GET request, and verify the JSON response.
-		Client client = Client.create();
-		WebResource webResource = client
-			.resource("....url");
-		ClientResponse response = webResource.accept("application/json")
-			.get(ClientResponse.class);
+		Client client = ClientBuilder.newClient();
+		WebTarget target = client.target("http://127.0.0.1:3306/recommend");
+		Response response = target.request("application/json").get();
 		if (response.getStatus() >= 300) {
 			throw new Exception(response.getStatusInfo().getReasonPhrase());
 		}
-		String output = response.getEntity(String.class);
+		String output = response.readEntity(String.class);
 		
 		// Parse JSON.
 		Gson gson = new Gson();
-		Message message = null;
 		RecommendedItem rec = null;
 		try {
-			message = gson.fromJson(output, NoRecommendationMessage.class);
+			NoRecommendationMessage noRefMsg;
+			noRefMsg = gson.fromJson(output, NoRecommendationMessage.class);
 			// There are no recommendations.
 		} catch (JsonSyntaxException ex) {
 			try {
-				message = gson.fromJson(output, RecommendationMessage.class);
-				rec = new LocalRecommendation(message.itemID, message.value);
+				RecommendationMessage recMsg = gson.fromJson(output, RecommendationMessage.class);
+				rec = new LocalRecommendation(recMsg.itemID, recMsg.value);
 				this.recommendations.add(rec);
 			} catch (JsonSyntaxException ex2) {
 				throw new Exception(
@@ -312,10 +315,10 @@ public class TestBasic extends TestBase {
 		LocalRecommendation(long itemID, float value) {
 			this.itemID = itemID; this.value = value;
 		}
-		private itemID;
-		private value;
-		long getItemID() { return this.itemID; }
-		float getValue() { return this.value; }
+		private long itemID;
+		private float value;
+		public long getItemID() { return this.itemID; }
+		public float getValue() { return this.value; }
 	}
 	
 	@Then("^I obtain two recommendations$")

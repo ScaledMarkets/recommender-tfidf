@@ -38,6 +38,9 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 //import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import static spark.Spark.get;
+import spark.ResponseTransformer;
+import spark.Request;
+import spark.Response;
 import com.google.gson.Gson;
 
 import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
@@ -89,7 +92,7 @@ public class UserSimilarityRecommender {
 		
 		int dbPort = Integer.parseInt(dbPortStr);
 		
-		DataSource dataSource = new MysqlDataSource();
+		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
 		dataSource.setUser(dbUsername);
 		dataSource.setPassword(dbPassword);
@@ -146,7 +149,7 @@ public class UserSimilarityRecommender {
 	
 	private DataModel model;
 	
-	UserSimilarityRecommender(DataModel model) {
+	public UserSimilarityRecommender(DataModel model) {
 		this.model = model;
 	}
 	

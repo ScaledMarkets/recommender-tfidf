@@ -85,7 +85,8 @@ compileusersimrec: $(USERSIMRECJAVABUILDDIR)
 	javac -Xmaxerrs $(maxerrs) \
 		-cp $(MAHOUT_CP):$(MYSQL_JDBC_CP):$(SPARK_CP):$(GSON_CP) \
 		-d $(USERSIMRECJAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java
+		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
 
 # Create the directory into which the jars will be created.
 
@@ -184,7 +185,7 @@ usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	cp $(SOLR_HOME)/dist/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr
 	cp $(SOLR_HOME)/dist/solrj-lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
 	cp $(MAHOUT_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
-	cp $(MAHOUT_HOME)/lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
+	#cp $(MAHOUT_HOME)/lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
 	cp $(MYSQL_JDBC_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mysql
 	cp $(SparkJavaHome)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/sparkjava
 	cp $(GSON_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/gson
@@ -201,9 +202,10 @@ $(test_build_dir):
 
 compile_tests: $(test_build_dir)
 	javac -Xmaxerrs $(maxerrs) \
-		-cp $(jar_dir)/$(USERSIMREC_JAR_NAME):$(CUCUMBER_CP):$(MAHOUT_CP):$(test_build_dir) \
+		-cp $(jar_dir)/$(USERSIMREC_JAR_NAME):$(CUCUMBER_CP):$(JAVAXWS_CP):$(GSON_CP):$(MYSQL_JDBC_CP):$(MAHOUT_CP):$(test_build_dir) \
 		-d $(test_build_dir) \
-		$(test_dir)/steps/$(test_package)/*.java
+		$(test_dir)/steps/$(test_package)/*.java \
+		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
 
 # Run unit tests.
 
@@ -227,7 +229,7 @@ deploy:
 
 # Run acceptance tests.
 accept_usersimrec: compile_tests deploy
-	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP) \
+	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP):$(JERSEY_CP) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @database
