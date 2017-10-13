@@ -2,6 +2,10 @@ package test;
 
 import scaledmarkets.recommenders.mahout.*;
 
+import scaledmarkets.recommenders.messages.Messages.Message;
+import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
+import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
+
 import cucumber.api.Format;
 import cucumber.api.java.Before;
 import cucumber.api.java.After;
@@ -10,6 +14,7 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonSyntaxException;
 
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 
@@ -23,6 +28,9 @@ import java.sql.Connection;
 import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 //import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
+import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
+import com.sun.jersey.api.client.WebResource;
 
 
 import static test.Utils.*;
@@ -161,10 +169,11 @@ public class TestBasic extends TestBase {
 		// Clear database and populate it.
 		Connection con = null;
 		Statement stmt = null;
-		ResultSet null;
 		try {
 			con = ds.getConnection();
 			stmt = con.createStatement();
+			
+			// User 1
 			stmt.executeUpdate("DELETE FROM UserPrefs WHERE UserID = *");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,10,1.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,11,2.0)");
@@ -204,16 +213,9 @@ public class TestBasic extends TestBase {
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,16,1.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,17,4.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,18,1.0)");
-		} catch (SQLException ex) {
-			e.printStackTrace();
 		} finally {
-			try {
-				if(rs != null) rs.close();
-				if(stmt != null) stmt.close();
-				if(con != null) con.close();
-			} catch (SQLException e) {
-				e.printStackTrace();
-			}
+			if(stmt != null) stmt.close();
+			if(con != null) con.close();
 		}
 		
 		// Connect mahout to database.
@@ -255,16 +257,76 @@ public class TestBasic extends TestBase {
 		}
 	}
 	
-	@When("^I remotely request two recommendations for a user$")
-	public void i_remotely_request_two_recommendations_for_a_user() throws Exception {
+	@When("^I remotely request a recommendation for a user$")
+	public void i_remotely_request_a_recommendation_for_a_user() throws Exception {
 		
-		....Make remote GET request, and verify the JSON response
+		// Re-initialize the expected result container.
+		this.recommendations = new List<RecommendedItem>();
 		
+		// Make remote GET request, and verify the JSON response.
+		Client client = Client.create();
+		WebResource webResource = client
+			.resource("....url");
+		ClientResponse response = webResource.accept("application/json")
+			.get(ClientResponse.class);
+		if (response.getStatus() >= 300) {
+			throw new Exception(response.getStatusInfo().getReasonPhrase());
+		}
+		String output = response.getEntity(String.class);
+		
+		// Parse JSON.
+		Gson gson = new Gson();
+		Message message = null;
+		RecommendedItem rec = null;
+		try {
+			message = gson.fromJson(output, NoRecommendationMessage.class);
+			// There are no recommendations.
+		} catch (JsonSyntaxException ex) {
+			try {
+				message = gson.fromJson(output, RecommendationMessage.class);
+				rec = new LocalRecommendation(message.itemID, message.value);
+				this.recommendations.add(rec);
+			} catch (JsonSyntaxException ex2) {
+				throw new Exception(
+					"Message from server is an unexpected type. Json=" + output);
+			}
+		}
+	}
+	
+	static class RecommendationMessage {
+		public RecommendationMessage(long itemID, float value) {
+			this.itemID = itemID;
+			this.value = value;
+		}
+		
+		public long itemID;
+		public float value;
+		
+		public long getItemID() { return this.itemID; }
+		public void setItemID(long id) { this.itemID = id; }
+		public float getValue() { return this.value; }
+		public void setValue(float v) { this.value = v; }
+	}
+
+	static class LocalRecommendation implements RecommendedItem {
+		LocalRecommendation(long itemID, float value) {
+			this.itemID = itemID; this.value = value;
+		}
+		private itemID;
+		private value;
+		long getItemID() { return this.itemID; }
+		float getValue() { return this.value; }
 	}
 	
 	@Then("^I obtain two recommendations$")
 	public void i_obtain_two_recommendations() throws Exception {
 		assertThat(this.recommendations.size() == 2, "Expected items to have 2" +
+			" elements, but it has " + this.recommendations.size());
+	}
+	
+	@Then("^I obtain one recommendation$")
+	public void i_obtain_one_recommendation() throws Exception {
+		assertThat(this.recommendations.size() == 1, "Expected items to have 1" +
 			" elements, but it has " + this.recommendations.size());
 	}
 }

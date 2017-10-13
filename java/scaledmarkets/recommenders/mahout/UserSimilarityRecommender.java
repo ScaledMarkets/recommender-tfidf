@@ -40,6 +40,9 @@ import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import static spark.Spark.get;
 import com.google.gson.Gson;
 
+import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
+import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
+
 /**
  * Obtain a recommendation for a specified user, based on the user's similarity
  * to other users, in terms of the preferences that the user has expressed for
@@ -177,27 +180,6 @@ public class UserSimilarityRecommender {
 		public String render(Object model) {
 			return gson.toJson(model);
 		}
-	}
-	
-	static class NoRecommendationMessage {
-		public String message = "No recommendation";
-		public String getMessage() { return this.message; }
-		public void setMessage(String message) { this.message = message; }
-	}
-	
-	static class RecommendationMessage {
-		public RecommendationMessage(long itemID, float value) {
-			this.itemID = itemID;
-			this.value = value;
-		}
-		
-		public long itemID;
-		public float value;
-		
-		public long getItemID() { return this.itemID; }
-		public void setItemID(long id) { this.itemID = id; }
-		public float getValue() { return this.value; }
-		public void setValue(float v) { this.value = v; }
 	}
 	
 	static void printUsage() {
