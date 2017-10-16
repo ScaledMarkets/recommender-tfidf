@@ -34,7 +34,8 @@ import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import java.io.File;
 import java.util.List;
 import javax.sql.DataSource;
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+//import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
 //import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import static spark.Spark.get;
@@ -77,7 +78,7 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length != 2) {
+		if (args.length != 6) {
 			printUsage();
 			System.exit(1);
 		}

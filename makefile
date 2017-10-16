@@ -20,6 +20,10 @@ export PopImageName := scaledmarkets/$(PROJECTNAME)-pop
 export SearchImageName := scaledmarkets/$(PROJECTNAME)-search
 export UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export test_package := test
+export MVN := $(MAVEN_HOME)/bin/mvn
+export MavenRepo=$(HOME)/.m2/repository
+export JAVA := $(JAVA_HOME)/bin/java
+export JAVAC := $(JAVA_HOME)/bin/javac
 
 # References: ------------------------------------------------------------------
 
@@ -35,11 +39,7 @@ export test_package := test
 
 export PROJECTROOT := $(shell pwd)
 export JAVASRCDIR := $(PROJECTROOT)/java
-export POPJAVABUILDDIR := $(PROJECTROOT)/classes/pop
-export SEARCHJAVABUILDDIR := $(PROJECTROOT)/classes/search
 export USERSIMRECJAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
-export POPIMAGEBUILDDIR := $(PROJECTROOT)/images/pop
-export SEARCHIMAGEBUILDDIR := $(PROJECTROOT)/images/search
 export USERSIMRECIMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
 export test_dir := $(PROJECTROOT)/test
 export test_build_dir := $(PROJECTROOT)/test/classes
@@ -64,64 +64,16 @@ all: popimage searchimage usersimrecimage
 
 compile: compilepop compilesearch compileusersimrec
 
-$(POPJAVABUILDDIR):
-	mkdir -p $(POPJAVABUILDDIR)
-
-compilepop: $(POPJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(SOLR_CP) -d $(POPJAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrjPopulator.java
-
-$(SEARCHJAVABUILDDIR):
-	mkdir -p $(SEARCHJAVABUILDDIR)
-
-compilesearch: $(SEARCHJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) -cp $(SOLR_CP) -d $(SEARCHJAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/solr/SolrJSearcher.java
-
 $(USERSIMRECJAVABUILDDIR):
 	mkdir -p $(USERSIMRECJAVABUILDDIR)
 
 compileusersimrec: $(USERSIMRECJAVABUILDDIR)
-	javac -Xmaxerrs $(maxerrs) \
-		-cp $(MAHOUT_CP):$(MYSQL_JDBC_CP):$(SPARK_CP):$(GSON_CP) \
-		-d $(USERSIMRECJAVABUILDDIR) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/mahout/UserSimilarityRecommender.java \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
+	$(MVN) compile -U -e
 
 # Create the directory into which the jars will be created.
 
 $(jar_dir):
 	mkdir -p $(jar_dir)
-
-# Create the Populator jar.
-
-pop_jar: $(jar_dir)/$(POP_JAR_NAME)
-
-$(jar_dir)/$(POP_JAR_NAME): compilepop $(jar_dir)
-	echo "Main-Class: $(pop_main_class)" > PopManifest
-	echo "Specification-Title: $(PRODUCT_NAME) Populator" >> PopManifest
-	echo "Specification-Version: $(VERSION)" >> PopManifest
-	echo "Specification-Vendor: $(ORG)" >> PopManifest
-	echo "Implementation-Title: $(pop_main_class)" >> PopManifest
-	echo "Implementation-Vendor: $(ORG)" >> PopManifest
-	jar cfm $(jar_dir)/$(POP_JAR_NAME) PopManifest \
-		-C $(POPJAVABUILDDIR) scaledmarkets
-	rm PopManifest
-
-# Create the Search jar.
-
-search_jar: $(jar_dir)/$(SEARCH_JAR_NAME)
-
-$(jar_dir)/$(SEARCH_JAR_NAME): compilesearch $(jar_dir)
-	echo "Main-Class: $(search_main_class)" > SearchManifest
-	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> SearchManifest
-	echo "Specification-Version: $(VERSION)" >> SearchManifest
-	echo "Specification-Vendor: $(ORG)" >> SearchManifest
-	echo "Implementation-Title: $(search_main_class)" >> SearchManifest
-	echo "Implementation-Vendor: $(ORG)" >> SearchManifest
-	jar cfm $(jar_dir)/$(SEARCH_JAR_NAME) SearchManifest \
-		-C $(SEARCHJAVABUILDDIR) scaledmarkets
-	rm SearchManifest
 
 # Create the user similarity recommender jar.
 
@@ -138,34 +90,6 @@ $(jar_dir)/$(USERSIMREC_JAR_NAME): compileusersimrec $(jar_dir)
 		-C $(USERSIMRECJAVABUILDDIR) scaledmarkets
 	rm UserSimRecManifest
 
-# Build the Populator container image.
-
-$(POPIMAGEBUILDDIR):
-	mkdir -p $(POPIMAGEBUILDDIR)
-
-popimage: $(POPIMAGEBUILDDIR) pop_jar
-	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
-	cp $(jar_dir)/$(POP_JAR_NAME) $(POPIMAGEBUILDDIR)
-	PROJECTNAME=$(PROJECTNAME) POP_JAR_NAME=$(POP_JAR_NAME) docker build \
-		--tag=$(PopImageName) $(POPIMAGEBUILDDIR)
-	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
-	docker push $(PopImageName)
-	docker logout
-
-# Build the Search container image.
-
-$(SEARCHIMAGEBUILDDIR):
-	mkdir -p $(SEARCHIMAGEBUILDDIR)
-
-searchimage: $(SEARCHIMAGEBUILDDIR) search_jar
-	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
-	cp $(jar_dir)/$(SEARCH_JAR_NAME) $(SEARCHIMAGEBUILDDIR)
-	PROJECTNAME=$(PROJECTNAME) SEARCH_JAR_NAME=$(SEARCH_JAR_NAME) docker build \
-		--tag=$(SearchImageName) $(SEARCHIMAGEBUILDDIR)
-	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
-	docker push $(SearchImageName)
-	docker logout
-
 # Build the user similarity recommender container image.
 
 $(USERSIMRECIMAGEBUILDDIR):
@@ -174,26 +98,37 @@ $(USERSIMRECIMAGEBUILDDIR):
 usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
-	# Copy other jars that the runtime needs:
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/mysql
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/sparkjava
-	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars/gson
-	cp $(SOLR_HOME)/dist/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr
-	cp $(SOLR_HOME)/dist/solrj-lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/solr/solrj-lib
-	cp $(MAHOUT_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout
-	#cp $(MAHOUT_HOME)/lib/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mahout/lib
-	cp $(MYSQL_JDBC_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/mysql
-	cp $(SparkJavaHome)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/sparkjava
-	cp $(GSON_HOME)/*.jar $(USERSIMRECIMAGEBUILDDIR)/jars/gson
+	# Copy other jars that the runtime needs.
+	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
+	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars
+	cp $(MavenRepo)/com/sparkjava/spark-core/2.5/spark-core-2.5.jar /jars
+	cp $(MavenRepo)/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-server/9.3.6.v20151106/jetty-server-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/javax/servlet/javax.servlet-api/3.1.0/javax.servlet-api-3.1.0.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-http/9.3.6.v20151106/jetty-http-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-util/9.3.6.v20151106/jetty-util-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-io/9.3.6.v20151106/jetty-io-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-webapp/9.3.6.v20151106/jetty-webapp-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-xml/9.3.6.v20151106/jetty-xml-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-servlet/9.3.6.v20151106/jetty-servlet-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/jetty-security/9.3.6.v20151106/jetty-security-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/websocket/websocket-server/9.3.6.v20151106/websocket-server-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/websocket/websocket-common/9.3.6.v20151106/websocket-common-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/websocket/websocket-client/9.3.6.v20151106/websocket-client-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/websocket/websocket-servlet/9.3.6.v20151106/websocket-servlet-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/org/eclipse/jetty/websocket/websocket-api/9.3.6.v20151106/websocket-api-9.3.6.v20151106.jar /jars
+	cp $(MavenRepo)/mysql/mysql-connector-java/8.0.8-dmr/mysql-connector-java-8.0.8-dmr.jar /jars
+	cp $(MavenRepo)/com/google/code/gson/gson/2.8.2/gson-2.8.2.jar /jars
+	cp $(MavenRepo)/org/apache/mahout/mahout-math/0.13.0/mahout-math-0.13.0.jar /jars
+	cp $(MavenRepo)/org/apache/commons/commons-math3/3.2/commons-math3-3.2.jar /jars
+	cp $(MavenRepo)/com/google/guava/guava/14.0.1/guava-14.0.1.jar /jars
+	cp $(MavenRepo)/it/unimi/dsi/fastutil/7.0.12/fastutil-7.0.12.jar /jars
+	cp $(MavenRepo)/com/tdunning/t-digest/3.1/t-digest-3.1.jar /jars
 	PROJECTNAME=$(PROJECTNAME) USERSIMREC_JAR_NAME=$(USERSIMREC_JAR_NAME) docker build \
 		--tag=$(UserSimRecImageName) $(USERSIMRECIMAGEBUILDDIR)
-	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
-	docker push $(UserSimRecImageName)
-	docker logout
+	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
+	sudo docker push $(UserSimRecImageName)
+	sudo docker logout
 
 # Compile the test source files.
 
@@ -201,7 +136,7 @@ $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
 compile_tests: $(test_build_dir)
-	javac -Xmaxerrs $(maxerrs) \
+	$(JAVAC) -source 8 -release 8 -Xmaxerrs $(maxerrs) \
 		-cp $(jar_dir)/$(USERSIMREC_JAR_NAME):$(CUCUMBER_CP):$(JAVAXWS_CP):$(GSON_CP):$(MYSQL_JDBC_CP):$(MAHOUT_CP):$(test_build_dir) \
 		-d $(test_build_dir) \
 		$(test_dir)/steps/$(test_package)/*.java \
@@ -216,12 +151,23 @@ unit_usersimrec: compile_tests usersimrec_jar
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @file
 
-# Deploy the current for test.
+# Deploy for test.
+# This deploys locally by running main - no container is used.
+deploy_test:
+	java -cp \
+		"$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MYSQL_JDBC_HOME)/*:$(SparkJavaHome)/*:$(GSON_HOME)/*:$(MAHOUT_HOME)/*" \
+		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		mysql localhost 3306 UserPrefs test test
+
+# Deploy.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
 deploy: 
 	sudo docker volume create dbcreate
 	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
 	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
+	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
+	docker pull $(UserSimRecImageName)
+	docker logout
 	UserSimRecImageName=$(UserSimRecImageName) \
 		MYSQL_ROOT_PASSWORD=test \
 		MYSQL_USER=test MYSQL_PASSWORD=test \
@@ -239,10 +185,6 @@ test: unit_usersimrec accept_usersimrec
 # Housekeeping.
 
 clean:
-	rm -r -f $(POPJAVABUILDDIR)/*
-	rm -r -f $(POPIMAGEBUILDDIR)/*
-	rm -r -f $(SEARCHJAVABUILDDIR)/*
-	rm -r -f $(SEARCHIMAGEBUILDDIR)
 	rm -r -f $(USERSIMRECJAVABUILDDIR)/*
 	rm -r -f $(USERSIMRECIMAGEBUILDDIR)
 	docker volume rm dbcreate

@@ -5,6 +5,7 @@ Vagrant.configure(2) do |config|
 	config.vm.hostname = "recommender-tfidf"
 	config.vm.box = "amixsi/centos-7"  # includes VirtualBox Guest Additions
 	config.vm.box_version = "1.0.0"
+	config.vm.network "forwarded_port", guest: 3306, host: 3306
 	
 	# Synced folders.
 	# Note: the host directory containing this Vagrantfile is automatically mapped

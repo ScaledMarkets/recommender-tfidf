@@ -165,7 +165,7 @@ public class TestBasic extends TestBase {
 		
 		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
-		dataSource.setUser("test");
+		dataSource.setUser("root");
 		dataSource.setPassword("test");
 		dataSource.setServerName("127.0.0.1");
 		dataSource.setPort(3306);
