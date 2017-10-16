@@ -100,6 +100,7 @@ usersimrecimage: $(USERSIMRECIMAGEBUILDDIR) usersimrec_jar
 	cp $(jar_dir)/$(USERSIMREC_JAR_NAME) $(USERSIMRECIMAGEBUILDDIR)
 	# Copy other jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
+	# Before doing that, make sure JAVA_HOME is set as in makefile.inc.
 	mkdir -p $(USERSIMRECIMAGEBUILDDIR)/jars
 	cp $(MavenRepo)/com/sparkjava/spark-core/2.5/spark-core-2.5.jar /jars
 	cp $(MavenRepo)/org/slf4j/slf4j-api/1.7.13/slf4j-api-1.7.13.jar /jars
