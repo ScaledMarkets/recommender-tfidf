@@ -22,8 +22,6 @@ export UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export test_package := test
 export MVN := $(MAVEN_HOME)/bin/mvn
 export MavenRepo=$(HOME)/.m2/repository
-export JAVA := $(JAVA_HOME)/bin/java
-export JAVAC := $(JAVA_HOME)/bin/javac
 
 # References: ------------------------------------------------------------------
 
@@ -45,7 +43,9 @@ export test_dir := $(PROJECTROOT)/test
 export test_build_dir := $(PROJECTROOT)/test/classes
 
 # Tools: -----------------------------------------------------------------------
-SHELL := /bin/sh
+export SHELL := /bin/sh
+export JAVA := $(JAVA_HOME)/bin/java
+export JAVAC := $(JAVA_HOME)/bin/javac
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -58,11 +58,11 @@ SHELL := /bin/sh
 .PHONY: compile build clean info
 .DELETE_ON_ERROR:
 
-all: popimage searchimage usersimrecimage
+all: usersimrecimage
 
 # Compile Java files.
 
-compile: compilepop compilesearch compileusersimrec
+compile: compileusersimrec
 
 $(USERSIMRECJAVABUILDDIR):
 	mkdir -p $(USERSIMRECJAVABUILDDIR)
@@ -235,7 +235,7 @@ compile_tests: $(test_build_dir)
 
 unit_usersimrec: compile_tests usersimrec_jar
 	# Run unit tests.
-	java -cp $(CUCUMBER_CP):$(test_build_dir) \
+	$(JAVA) -cp $(CUCUMBER_CP):$(test_build_dir) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @file
@@ -243,7 +243,7 @@ unit_usersimrec: compile_tests usersimrec_jar
 # Deploy for test.
 # This deploys locally by running main - no container is used.
 deploy_test:
-	java -cp \
+	$(JAVA) -cp \
 		"$(jar_dir)/$(USERSIMREC_JAR_NAME):$(MYSQL_JDBC_HOME)/*:$(SparkJavaHome)/*:$(GSON_HOME)/*:$(MAHOUT_HOME)/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		mysql localhost 3306 UserPrefs test test
@@ -264,7 +264,7 @@ deploy:
 
 # Run acceptance tests.
 accept_usersimrec: compile_tests deploy
-	java -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP):$(JERSEY_CP) \
+	$(JAVA) -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP):$(JERSEY_CP) \
 		cucumber.api.cli.Main \
 		--glue $(test_package) $(test_dir)/features \
 		--tags @done --tags @usersimrec --tags @database
