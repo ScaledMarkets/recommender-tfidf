@@ -5,6 +5,7 @@ include makefile.inc
 
 # Names: -----------------------------------------------------------------------
 
+export PROJECTROOT := $(shell pwd)
 export JAVASRCDIR := $(PROJECTROOT)/java
 export unit_test_dir := $(PROJECTROOT)/test-unit
 export bdd_test_dir := $(PROJECTROOT)/test-bdd
@@ -26,7 +27,6 @@ export MVN := $(MAVEN_HOME)/bin/mvn
 
 # Locations of generated artifacts: --------------------------------------------
 
-export PROJECTROOT := $(shell pwd)
 export JAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
 export IMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
 export unit_test_build_dir := $(PROJECTROOT)/test-unit/classes
@@ -67,7 +67,7 @@ compile_messages: $(message_build_dir)
 		-d $(message_build_dir) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
 
-compile_unit_test:
+compile_unit_tests:
 	$(MVN) test-compile
 
 # Create the directory into which the jars will be created.
@@ -79,7 +79,7 @@ $(jar_dir):
 
 jar: $(jar_dir)/$(USERSIMREC_JAR_NAME)
 
-$(jar_dir)/$(USERSIMREC_JAR_NAME): compileusersimrec $(jar_dir)
+$(jar_dir)/$(USERSIMREC_JAR_NAME): $(jar_dir)
 	echo "Main-Class: $(main_class)" > UserSimRecManifest
 	echo "Specification-Title: $(PRODUCT_NAME) Searcher" >> UserSimRecManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
@@ -115,7 +115,7 @@ image: $(IMAGEBUILDDIR) jar
 $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
-compile_bddtests: $(test_build_dir) compile_messages
+compile_bdd_tests: $(test_build_dir) compile_messages
 	$(MVN) -f pom-bdd.xml compile -U -e
 	$(JAVAC) -source 8 -Xmaxerrs $(maxerrs) \
 		-cp $(jar_dir)/$(USERSIMREC_JAR_NAME):$(CUCUMBER_CP):$(JAVAXWS_CP):$(GSON_CP):$(MYSQL_JDBC_CP):$(MAHOUT_CP):$(test_build_dir) \
@@ -124,13 +124,8 @@ compile_bddtests: $(test_build_dir) compile_messages
 		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
 
 # Run unit tests.
-unit_test: compile_tests jar
-	# Run unit tests.
+unit_test: compile_unit_tests jar
 	$(MVN) test
-	$(JAVA) -cp $(CUCUMBER_CP):$(test_build_dir) \
-		cucumber.api.cli.Main \
-		--glue $(unit_test_package) $(unit_test_dir)/features \
-		--tags @done --tags @usersimrec --tags @file
 
 # Deploy for running behavioral tests.
 # This deploys locally by running main - no container is used.
@@ -159,7 +154,7 @@ bdd_deploy:
 		docker-compose up
 
 # Run BDD tests.
-bdd: compile_tests deploy
+bdd: compile_bdd_tests deploy
 	$(JAVA) -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP):$(JERSEY_CP) \
 		cucumber.api.cli.Main \
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \

@@ -1,12 +1,8 @@
 package unittest;
 
-import cucumber.api.Scenario;
-
 public class TestBase {
 
 	public Process process;
-
-	private Scenario scenario;
 	
 	public TestBase() {
 		try {
@@ -15,10 +11,6 @@ public class TestBase {
 			throw t;
 		}
 	}
-	
-	public void setScenario(Scenario s) { this.scenario = s; }
-	
-	public Scenario getScenario() { return scenario; }
 	
 	public void assertThat(boolean expr) throws Exception {
 		Utils.assertThat(expr);

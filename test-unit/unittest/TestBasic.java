@@ -2,13 +2,6 @@ package unittest;
 
 import scaledmarkets.recommenders.mahout.UserSimilarityRecommender;
 
-import cucumber.api.Format;
-import cucumber.api.java.Before;
-import cucumber.api.java.After;
-import cucumber.api.java.en.Given;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
@@ -22,7 +15,7 @@ import java.io.PrintWriter;
 import java.util.List;
 import java.util.LinkedList;
 
-import static test.Utils.*;
+import static unittest.Utils.*;
 
 import org.junit.*;
 import static org.junit.Assert.assertEquals;
@@ -32,11 +25,8 @@ public class TestBasic extends TestBase {
 	private DataModel model;
 	private List<RecommendedItem> recommendations;
 	
-	private MyClass myClass;
-	
 	public TestBasic()
 	{
-		this.myClass = new TestBasic();
 	}
 	
 	@BeforeClass
@@ -65,26 +55,26 @@ public class TestBasic extends TestBase {
 	
 	// Scenario: Basic functionality
 	@Test
-	public void testGetGreeting()
-	{
+	public void testBasic() throws Exception {
+
 		given_four_users_and_their_item_preferences();
-		when_i_locally_request_two_recommendations_for_a_user();
+		when_i_locally_request_two_recommendations_for_a_user(4L);
 		then_i_obtain_two_recommendations();
 	}
 	
 	// Scenario: All users the same
 	@Test
-	public void testPrintGreeting()
-	{
+	public void testAllUsersSame() throws Exception {
+
 		given_ten_users_with_identical_item_preferences();
-		when_i_locally_request_two_recommendations_for_a_user();
+		when_i_locally_request_two_recommendations_for_a_user(10L);
 		then_i_obtain_two_recommendations();
 	}
 
 	// From example at,
 	//	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
 	// Given four users and their item preferences
-	public void given_four_users_and_their_item_preferences() throws Exception {
+	protected void given_four_users_and_their_item_preferences() throws Exception {
 		
 		File csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(csvFile);
@@ -134,8 +124,8 @@ public class TestBasic extends TestBase {
 		this.model = new FileDataModel(csvFile);
 	}
 	
-	// When ten users with identical item preferences
-	public void when_ten_users_with_identical_item_preferences() throws Exception {
+	// Given ten users with identical item preferences
+	protected void given_ten_users_with_identical_item_preferences() throws Exception {
 		
 		File csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(csvFile);
@@ -192,10 +182,9 @@ public class TestBasic extends TestBase {
 		this.model = new FileDataModel(csvFile);
 	}
 
-	// Then I locally request two recommendations for a user
-	public void then_i_locally_request_two_recommendations_for_a_user() throws Exception {
+	// When I locally request two recommendations for a user
+	protected void when_i_locally_request_two_recommendations_for_a_user(long userId) throws Exception {
 		double neighborhoodThreshold = 0.1;
-		long userId = 10;
 		
 		/*
 		RecommenderBuilder builder = new RecommenderBuilder() {
@@ -223,7 +212,7 @@ public class TestBasic extends TestBase {
 	}
 
 	// Then I obtain two recommendations
-	public void then_i_obtain_two_recommendations() throws Exception {
+	protected void then_i_obtain_two_recommendations() throws Exception {
 		assertThat(this.recommendations.size() == 2, "Expected items to have 2" +
 			" elements, but it has " + this.recommendations.size());
 	}
