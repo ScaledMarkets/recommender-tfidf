@@ -1,4 +1,4 @@
-package test;
+package unittest;
 
 import cucumber.api.Scenario;
 

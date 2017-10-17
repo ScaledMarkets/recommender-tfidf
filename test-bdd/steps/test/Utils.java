@@ -1,4 +1,4 @@
-package test;
+package bddtest;
 
 public class Utils {
 	
