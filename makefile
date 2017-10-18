@@ -27,10 +27,10 @@ export MVN := $(MAVEN_HOME)/bin/mvn
 
 # Locations of generated artifacts: --------------------------------------------
 
-export JAVABUILDDIR := $(PROJECTROOT)/classes/usersimrec
+export MAVENBUILDDIR := $(PROJECTROOT)/maven/usersimrec
 export IMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
 export unit_test_build_dir := $(PROJECTROOT)/test-unit/classes
-export bdd_test_build_dir := $(PROJECTROOT)/test-bdd/classes
+export bdd_test_maven_build_dir := $(PROJECTROOT)/test-bdd/classes
 export message_build_dir := $(PROJECTROOT)/shared/classes
 
 # Tools: -----------------------------------------------------------------------
@@ -53,13 +53,13 @@ all: image
 
 # Compile Java files.
 
-$(JAVABUILDDIR):
-	mkdir -p $(JAVABUILDDIR)
+$(MAVENBUILDDIR):
+	mkdir -p $(MAVENBUILDDIR)
 
 $(message_build_dir):
 	mkdir -p $(message_build_dir)
 
-compile: $(JAVABUILDDIR) compile_messages
+compile: $(MAVENBUILDDIR) jar_messages
 	$(MVN) compile -U -e
 
 compile_messages: $(message_build_dir)
@@ -77,29 +77,32 @@ $(jar_dir):
 
 # Create the user similarity recommender jar.
 
-jar_app: $(jar_dir)
+jar_app: $(jar_dir) compile
 	echo "Main-Class: $(main_class)" > UserSimRecManifest
 	echo "Specification-Title: $(PRODUCT_NAME) User Similarity Recommender" >> UserSimRecManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
 	echo "Specification-Vendor: $(ORG)" >> UserSimRecManifest
 	echo "Implementation-Title: $(main_class)" >> UserSimRecManifest
 	echo "Implementation-Vendor: $(ORG)" >> UserSimRecManifest
-	jar cfm $(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)/$(APP_JAR_NAME) \
-		UserSimRecManifest -C $(JAVABUILDDIR) scaledmarkets
+	jar cfm $(jar_dir)/$(APP_JAR_NAME) \
+		UserSimRecManifest -C $(MAVENBUILDDIR)/classes scaledmarkets
 	rm UserSimRecManifest
 
 # Create jar file for the messages that are sent by the recommender. This is the
 # public interface of the application.
-jar_messages: $(jar_dir)
+jar_messages: $(jar_dir) compile_messages
 	echo "Specification-Title: $(PRODUCT_NAME) Message Types" >> UserSimRecMessagesManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecMessagesManifest
 	echo "Specification-Vendor: $(ORG)" >> UserSimRecMessagesManifest
 	echo "Implementation-Title: $(main_class)" >> UserSimRecMessagesManifest
 	echo "Implementation-Vendor: $(ORG)" >> UserSimRecMessagesManifest
-	mkdir -p $(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)
-	jar cfm $(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)/$(MESSAGES_JAR_NAME) \
+	jar cfm $(jar_dir)/$(MESSAGES_JAR_NAME) \
 		UserSimRecMessagesManifest -C $(message_build_dir) scaledmarkets
 	rm UserSimRecMessagesManifest
+	# Install in the local repository so that the maven compile and the bdd test
+	# can find it.
+	$(MVN) install:install-file -Dfile=$(jar_dir)/$(MESSAGES_JAR_NAME) -DgroupId=$(GROUPNAME) \
+		-DartifactId=$(PROJECTNAME)-messages -Dversion=$(VERSION) -Dpackaging=jar
 
 # Build the user similarity recommender container image.
 
@@ -108,7 +111,7 @@ $(IMAGEBUILDDIR):
 
 image: $(IMAGEBUILDDIR) jar
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
-	cp $(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
+	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	# Before doing that, make sure JAVA_HOME is set as in makefile.inc.
@@ -118,7 +121,7 @@ image: $(IMAGEBUILDDIR) jar
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) docker build \
 		--tag=$(UserSimRecImageName) $(IMAGEBUILDDIR)
 	# Copy the message jar. These are the message types that the recommender sends.
-	cp $(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
+	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
 	# Push image to dockerhub.
 	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	sudo docker push $(UserSimRecImageName)
@@ -129,7 +132,7 @@ image: $(IMAGEBUILDDIR) jar
 $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
-compile_bdd_tests: $(test_build_dir) compile_messages
+compile_bdd_tests: #$(test_build_dir) compile_messages
 	$(MVN) -f pom-bdd.xml -U -e compile
 
 # Run unit tests.
@@ -140,7 +143,7 @@ unit_test: compile_unit_tests jar
 # This deploys locally by running main - no container is used.
 bdd_deploy_local:
 	$(JAVA) -cp \
-		"$(jar_dir)/$(GROUPNAME)/$(PROJECTNAME)/$(VERSION)/$(APP_JAR_NAME):$(MYSQL_JDBC_HOME)/*:$(SparkJavaHome)/*:$(GSON_HOME)/*:$(MAHOUT_HOME)/*" \
+		"$(jar_dir)/$(APP_JAR_NAME):$(MYSQL_JDBC_HOME)/*:$(SparkJavaHome)/*:$(GSON_HOME)/*:$(MAHOUT_HOME)/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		mysql localhost 3306 UserPrefs test test
 
@@ -174,7 +177,7 @@ test: unit_test bdd
 # Housekeeping.
 
 clean:
-	rm -r -f $(JAVABUILDDIR)/*
+	rm -r -f $(MAVENBUILDDIR)/*
 	rm -r -f $(IMAGEBUILDDIR)
 	docker volume rm dbcreate
 

@@ -10,9 +10,6 @@ export HOME := $(shell echo ~)
 export MAVEN_HOME := $(HOME)/Library/apache-maven-3.3.9
 export JAVA_HOME := /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home
 
-# Note: The following jar directory is organized as a maven repository, with entries
-# organized as,
-# /<group-id>/<artifact-id>/<version>/<artifact-id>-<version>.jar
 export jar_dir := /Transient/Recommenders
 
 export MAHOUT_HOME := $(HOME)/Library/apache-mahout-distribution-0.13.0

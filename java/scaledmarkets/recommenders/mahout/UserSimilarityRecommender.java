@@ -34,9 +34,7 @@ import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import java.io.File;
 import java.util.List;
 import javax.sql.DataSource;
-//import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
-//import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import static spark.Spark.get;
 import spark.ResponseTransformer;

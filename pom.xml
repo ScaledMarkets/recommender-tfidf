@@ -66,13 +66,6 @@
 			</snapshots>
 		</repository>
 		
-		<!-- For local dependency: the message types used by the recommender service. -->
-		<repository>
-			<id>Recommenders</id>
-			<name>Recommenders</name>
-			<url>file://${env.jar_dir}</url>		
-		</repository>
-		
 	</repositories>
 	
 	<dependencies>
@@ -113,10 +106,10 @@
 			<version>0.13.0</version>
 		</dependency>
 	
-		<!-- Local dependency: the message types used by the recommender service. -->
+		<!-- Local repo dependency: the message types used by the recommender service. -->
 		<dependency>
 			<groupId>${env.GROUPNAME}</groupId>
-			<artifactId>${env.PROJECTNAME}</artifactId>
+			<artifactId>${env.PROJECTNAME}-messages</artifactId>
 			<version>${env.VERSION}</version>
 		</dependency>
 	
@@ -133,7 +126,7 @@
 	<build>
 	
 		<sourceDirectory>${env.JAVASRCDIR}</sourceDirectory>
-		<directory>${env.USERSIMRECJAVABUILDDIR}</directory>
+		<directory>${env.MAVENBUILDDIR}</directory>
 		<testSourceDirectory>${env.unit_test_dir}</testSourceDirectory>
 		
 		<plugins>

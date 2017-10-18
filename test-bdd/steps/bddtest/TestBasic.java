@@ -1,7 +1,5 @@
 package bddtest;
 
-import scaledmarkets.recommenders.mahout.UserSimilarityRecommender;
-
 import scaledmarkets.recommenders.messages.Messages.Message;
 import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
 import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
@@ -17,9 +15,8 @@ import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
-import org.apache.mahout.cf.taste.model.DataModel;
-import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
+import org.apache.mahout.cf.taste.model.DataModel;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -30,15 +27,12 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 
-import com.mysql.jdbc.jdbc2.optional.MysqlDataSource;
-//import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
+import com.mysql.cj.jdbc.MysqlDataSource;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.client.WebTarget;
-
-import static test.Utils.*;
 
 public class TestBasic extends TestBase {
 	
