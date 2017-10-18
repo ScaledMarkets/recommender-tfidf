@@ -38,3 +38,4 @@ export MYSQL_JDBC_CP := $(MYSQL_JDBC_HOME)/*
 export GSON_CP := $(GSON_HOME)/*
 export JERSEY_CP := $(JERSEY_HOME)/*
 export JAVAXWS_CP := $(JAVAXWS_HOME)/glassfish/modules/javax.ws.rs-api.jar
+export SparkJava_CP := $(SparkJavaHome)/*

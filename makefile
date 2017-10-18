@@ -30,7 +30,7 @@ export MVN := $(MAVEN_HOME)/bin/mvn
 export MAVENBUILDDIR := $(PROJECTROOT)/maven/usersimrec
 export IMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
 export unit_test_build_dir := $(PROJECTROOT)/test-unit/classes
-export bdd_test_maven_build_dir := $(PROJECTROOT)/test-bdd/classes
+export bdd_test_maven_build_dir := $(PROJECTROOT)/test-bdd/maven
 export message_build_dir := $(PROJECTROOT)/shared/classes
 
 # Tools: -----------------------------------------------------------------------
@@ -69,6 +69,9 @@ compile_messages: $(message_build_dir)
 
 compile_unit_tests:
 	$(MVN) test-compile
+
+compile_bdd_tests: #$(test_build_dir) compile_messages
+	$(MVN) -f pom-bdd.xml -U -e compile
 
 # Create the directory into which the jars will be created.
 
@@ -116,8 +119,11 @@ image: $(IMAGEBUILDDIR) jar
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	# Before doing that, make sure JAVA_HOME is set as in makefile.inc.
 	mkdir -p $(IMAGEBUILDDIR)/jars
-	cp=`mvn dependency:build-classpath | tail -n 8 | head -n 1`
-	for p in $(echo $cp | tr ":" "\n"); do cp p $(IMAGEBUILDDIR)/jars; done
+	{ \
+	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1`; \
+	for path in $(echo $classpath | tr ":" "\n"); do cp path $(IMAGEBUILDDIR)/jars; done; \
+	}
+	# Execute docker build to create an image.
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) docker build \
 		--tag=$(UserSimRecImageName) $(IMAGEBUILDDIR)
 	# Copy the message jar. These are the message types that the recommender sends.
@@ -132,9 +138,6 @@ image: $(IMAGEBUILDDIR) jar
 $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
-compile_bdd_tests: #$(test_build_dir) compile_messages
-	$(MVN) -f pom-bdd.xml -U -e compile
-
 # Run unit tests.
 unit_test: compile_unit_tests jar
 	$(MVN) test
@@ -142,8 +145,7 @@ unit_test: compile_unit_tests jar
 # Deploy for running behavioral tests.
 # This deploys locally by running main - no container is used.
 bdd_deploy_local:
-	$(JAVA) -cp \
-		"$(jar_dir)/$(APP_JAR_NAME):$(MYSQL_JDBC_HOME)/*:$(SparkJavaHome)/*:$(GSON_HOME)/*:$(MAHOUT_HOME)/*" \
+	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		mysql localhost 3306 UserPrefs test test
 
@@ -166,11 +168,14 @@ bdd_deploy:
 		docker-compose up
 
 # Run BDD tests.
-bdd: compile_bdd_tests bdd_deploy
-	$(JAVA) -cp $(CUCUMBER_CP):$(test_build_dir):$(GSON_CP):$(JERSEY_CP) \
+bdd: #compile_bdd_tests bdd_deploy
+	{ \
+	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
+	$$JAVA -cp $$CUCUMBER_CP:$$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
 		cucumber.api.cli.Main \
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \
-		--tags @done --tags @usersimrec --tags @database
+		--tags @done --tags @usersimrec --tags @database; \
+	}
 
 test: unit_test bdd
 
