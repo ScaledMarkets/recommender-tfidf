@@ -10,8 +10,12 @@ export HOME := $(shell echo ~)
 export MAVEN_HOME := $(HOME)/Library/apache-maven-3.3.9
 export JAVA_HOME := /Library/Java/JavaVirtualMachines/jdk1.8.0_20.jdk/Contents/Home
 
-export MAHOUT_HOME := $(HOME)/Library/apache-mahout-distribution-0.13.0
+# Note: The following jar directory is organized as a maven repository, with entries
+# organized as,
+# /<group-id>/<artifact-id>/<version>/<artifact-id>-<version>.jar
 export jar_dir := /Transient/Recommenders
+
+export MAHOUT_HOME := $(HOME)/Library/apache-mahout-distribution-0.13.0
 export CUCUMBER_HOME:=$(HOME)/Library/Cucumber
 export MYSQL_JDBC_HOME := $(HOME)/Library/mysql-connector-java-5.1.44
 export SparkJavaHome := $(HOME)/Library/SparkJava

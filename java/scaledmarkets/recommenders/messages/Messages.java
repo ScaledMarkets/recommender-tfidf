@@ -1,6 +1,5 @@
 package scaledmarkets.recommenders.messages;
 
-
 public class Messages {
 	
 	public static class Message {

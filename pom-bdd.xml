@@ -24,6 +24,7 @@
 	<properties>
 		<maven.compiler.source>1.8</maven.compiler.source>
 		<maven.compiler.target>1.8</maven.compiler.target>
+		<cucumber-jvm.version>1.1.5</cucumber-jvm.version>
 	</properties>
 	
 	<repositories>
@@ -66,6 +67,13 @@
 			</snapshots>
 		</repository>
 		
+		<!-- For local dependency: the message types used by the recommender service. -->
+		<repository>
+			<id>Recommenders</id>
+			<name>Recommenders</name>
+			<url>file://${env.jar_dir}</url>		
+		</repository>
+		
 	</repositories>
 	
 	<dependencies>
@@ -76,25 +84,30 @@
 			<version>8.0.8-dmr</version>
 		</dependency>
 		
-		$(CUCUMBER_CP)
 		<dependency>
-			<groupId></groupId>
-			<artifactId></artifactId>
-			<version></version>
+			<groupId>info.cukes</groupId>
+			<artifactId>cucumber-java</artifactId>
+			<version>1.2.5</version>
+			<scope>provided</scope>
+		</dependency>		
+		
+		<dependency>
+			<groupId>javax.ws.rs</groupId>
+			<artifactId>javax.ws.rs-api</artifactId>
+			<version>2.1</version>
 		</dependency>
 		
-		$(JAVAXWS_CP)
-		<dependency>
-			<groupId></groupId>
-			<artifactId></artifactId>
-			<version></version>
-		</dependency>
-		
-		$(GSON_CP)
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 			<version>2.8.2</version>
+		</dependency>
+	
+		<!-- Local dependency: the message types used by the recommender service. -->
+		<dependency>
+			<groupId>${env.GROUPNAME}</groupId>
+			<artifactId>${env.PROJECTNAME}</artifactId>
+			<version>${env.VERSION}</version>
 		</dependency>
 		
 	</dependencies>
