@@ -9,6 +9,12 @@ import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.model.DataModel;
 import org.apache.mahout.cf.taste.impl.model.file.FileDataModel;
 import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
+import org.apache.mahout.cf.taste.similarity.UserSimilarity;
+import org.apache.mahout.cf.taste.impl.similarity.PearsonCorrelationSimilarity;
+import org.apache.mahout.cf.taste.neighborhood.UserNeighborhood;
+import org.apache.mahout.cf.taste.impl.neighborhood.ThresholdUserNeighborhood;
+import org.apache.mahout.cf.taste.recommender.UserBasedRecommender;
+import org.apache.mahout.cf.taste.impl.recommender.GenericUserBasedRecommender;
 
 import java.io.File;
 import java.io.PrintWriter;
@@ -58,7 +64,7 @@ public class TestBasic extends TestBase {
 	public void testBasic() throws Exception {
 
 		given_four_users_and_their_item_preferences();
-		when_i_locally_request_two_recommendations_for_a_user(4L);
+		when_i_request_two_recommendations_using_pearson_correlation(4L);
 		then_i_obtain_two_recommendations();
 	}
 	
@@ -67,13 +73,12 @@ public class TestBasic extends TestBase {
 	public void testAllUsersSame() throws Exception {
 
 		given_ten_users_with_identical_item_preferences();
-		when_i_locally_request_two_recommendations_for_a_user(10L);
+		when_i_request_two_recommendations_using_user_similarity(10L);
 		then_i_obtain_two_recommendations();
 	}
 
 	// From example at,
 	//	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
-	// Given four users and their item preferences
 	protected void given_four_users_and_their_item_preferences() throws Exception {
 		
 		File csvFile = new File("TestBasic.csv");
@@ -124,7 +129,6 @@ public class TestBasic extends TestBase {
 		this.model = new FileDataModel(csvFile);
 	}
 	
-	// Given ten users with identical item preferences
 	protected void given_ten_users_with_identical_item_preferences() throws Exception {
 		
 		File csvFile = new File("TestBasic.csv");
@@ -182,36 +186,21 @@ public class TestBasic extends TestBase {
 		this.model = new FileDataModel(csvFile);
 	}
 
-	// When I locally request two recommendations for a user
-	protected void when_i_locally_request_two_recommendations_for_a_user(long userId) throws Exception {
-		double neighborhoodThreshold = 0.1;
+	protected void when_i_request_two_recommendations_using_pearson_correlation(long userId) throws Exception {
 		
-		/*
-		RecommenderBuilder builder = new RecommenderBuilder() {
-			public Recommender buildRecommender() {
-				UserSimilarity similarity = new PearsonCorrelationSimilarity(dataModel);
-				UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, dataModel);
-				return new GenericUserBasedRecommender(dataModel, neighborhood, similarity);
-			}
-		}
-		
-		DataModel model = new FileDataModel(this.csvFile);
-		RecommenderEvaluator evaluator = new AverageAbsoluteDifferenceRecommenderEvaluator();
-		RecommenderBuilder builder = builder;
-		double result = evaluator.evaluate(builder, null, model, 0.9, 1.0);
-		System.out.println(result);		
-		*/
-		
-		this.recommendations = (new UserSimilarityRecommender(this.model)).recommend(
-			neighborhoodThreshold, userId, 2);
-		
-		System.out.println("Recommended items (" + this.recommendations.size() + "):");
-		for (RecommendedItem recommendation : this.recommendations) {
-			System.out.println(recommendation.getItemID());
-		}
+		UserSimilarity similarity = new PearsonCorrelationSimilarity(this.model);
+		UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, this.model);
+		UserBasedRecommender recommender = new GenericUserBasedRecommender(this.model, neighborhood, similarity);
+		this.recommendations = recommender.recommend(2, 2);
 	}
 
-	// Then I obtain two recommendations
+	protected void when_i_request_two_recommendations_using_user_similarity(long userId) throws Exception {
+		
+		double neighborhoodThreshold = 0.1;
+		this.recommendations = (new UserSimilarityRecommender(this.model)).recommend(
+			neighborhoodThreshold, userId, 2);
+	}
+
 	protected void then_i_obtain_two_recommendations() throws Exception {
 		assertThat(this.recommendations.size() == 2, "Expected items to have 2" +
 			" elements, but it has " + this.recommendations.size());
