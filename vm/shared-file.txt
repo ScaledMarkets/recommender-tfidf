@@ -1,2 +1,0 @@
-This file should appear in the folder that is shared between the local directory
-called 'vm' and the VM directory called '/vm'.
