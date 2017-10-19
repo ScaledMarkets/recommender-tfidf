@@ -1,8 +1,4 @@
 /target/
-**/*.rs.bk
-Cargo.lock
-/target/
-**/*.rs.bk
 **/*.class
 reference/
 *.jar
