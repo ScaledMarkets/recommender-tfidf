@@ -18,9 +18,7 @@ export main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
 export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export APP_JAR_NAME := $(PROJECTNAME)-$(VERSION).jar
 export MESSAGES_JAR_NAME := $(PROJECTNAME)-messages-$(VERSION).jar
-export PopImageName := scaledmarkets/$(PROJECTNAME)-pop
-export SearchImageName := scaledmarkets/$(PROJECTNAME)-search
-export UserSimRecImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
+export ImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export unit_test_package := unittest
 export bdd_test_package := bddtest
 export MVN := $(MAVEN_HOME)/bin/mvn
@@ -34,7 +32,7 @@ export bdd_test_maven_build_dir := $(PROJECTROOT)/test-bdd/maven
 export message_build_dir := $(PROJECTROOT)/shared/classes
 
 # Tools: -----------------------------------------------------------------------
-export SHELL := /bin/sh
+export SHELL := /bin/bash
 export JAVA := $(JAVA_HOME)/bin/java
 export JAVAC := $(JAVA_HOME)/bin/javac
 
@@ -125,12 +123,12 @@ image: $(IMAGEBUILDDIR) jar
 	}
 	# Execute docker build to create an image.
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) docker build \
-		--tag=$(UserSimRecImageName) $(IMAGEBUILDDIR)
+		--tag=$(ImageName) $(IMAGEBUILDDIR)
 	# Copy the message jar. These are the message types that the recommender sends.
 	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
 	# Push image to dockerhub.
 	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
-	sudo docker push $(UserSimRecImageName)
+	sudo docker push $(ImageName)
 	sudo docker logout
 
 # Compile the test source files.
@@ -159,12 +157,23 @@ bdd_deploy:
 	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
 	# Obtain the application image.
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
-	docker pull $(UserSimRecImageName)
+	docker pull $(ImageName)
 	docker logout
-	# Run the Compose file to deploy.
-	UserSimRecImageName=$(UserSimRecImageName) \
-		MYSQL_ROOT_PASSWORD=test \
-		MYSQL_USER=test MYSQL_PASSWORD=test \
+	# Deploy a mysql database.
+	MYSQL_ROOT_PASSWORD=test \
+		MYSQL_DATABASE=mysql \
+		MYSQL_USER=test \
+		MYSQL_PASSWORD=test \
+		docker-compose -f test-bdd/docker-compose-mysql.yml up
+	# Run the Compose file to deploy the recommender.
+	ImageName=$(ImageName) \
+		DATABASE_NAME=mysql \
+		MYSQL_HOST=localhost \
+		MYSQL_PORT=3306 \
+		TABLE_NAME=UserPrefs \
+		MYSQL_USER=test \
+		MYSQL_PASSWORD=test \
+		PORT=8080 \
 		docker-compose up
 
 # Run BDD tests.

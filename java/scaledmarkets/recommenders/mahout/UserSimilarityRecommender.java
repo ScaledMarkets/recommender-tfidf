@@ -76,7 +76,7 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length != 6) {
+		if (args.length != 7) {
 			printUsage();
 			System.exit(1);
 		}
@@ -88,8 +88,10 @@ public class UserSimilarityRecommender {
 		String databaseTableName = args[3];
 		String dbUsername = args[4];
 		String dbPassword = args[5];
+		String svcPortStr = args[6];
 		
 		int dbPort = Integer.parseInt(dbPortStr);
+		int svcPort = Integer.parseInt(svcPortStr);
 		
 		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
@@ -118,6 +120,7 @@ public class UserSimilarityRecommender {
 		// For info on SparkJava Web service framework (not related to Apache Spark):
 		//	http://blog.sahil.me/posts/simple-web-services-and-java/
 		//	http://sparkjava.com/
+		port(svcPort);
 		get("/recommend", "application/json", (Request request, Response response) -> {
 			
 			String thresholdStr = request.queryParams("threshold");

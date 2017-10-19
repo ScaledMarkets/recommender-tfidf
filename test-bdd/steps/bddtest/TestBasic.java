@@ -36,6 +36,10 @@ import javax.ws.rs.client.WebTarget;
 
 public class TestBasic extends TestBase {
 	
+	private static final String scheme = "http"'
+	private static final String Host = "127.0.0.1";
+	private static final String Port = "8080";
+	
 	private DataModel model;
 	private List<RecommendedItem> recommendations;
 	
@@ -123,7 +127,7 @@ public class TestBasic extends TestBase {
 		
 		// Make remote GET request, and verify the JSON response.
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target("http://127.0.0.1:3306/recommend");
+		WebTarget target = client.target(scheme + "://" + host + ":" + port + "/recommend");
 		Response response = target.request("application/json").get();
 		if (response.getStatus() >= 300) {
 			throw new Exception(response.getStatusInfo().getReasonPhrase());

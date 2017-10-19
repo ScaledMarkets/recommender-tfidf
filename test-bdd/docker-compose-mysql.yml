@@ -1,0 +1,31 @@
+version: '3'
+services:
+  # Stand up a mysql database for the purpose of running behavioral tests.
+  # This is not intended to be a production deployment of mysql.
+  # Note: The mysql image does not work under Docker for Mac - one cannot access
+  # it. Instead, use true Linux version.
+  mysql:
+    container_name: mysql
+    image: mysql:8.0.3
+    environment:
+      - MYSQL_ROOT_PASSWORD=test
+      - MYSQL_DATABASE=mysql
+      - MYSQL_USER=test
+      - MYSQL_PASSWORD=test
+      #- MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      #- MYSQL_DATABASE=mysql
+      #- MYSQL_USER=${MYSQL_USER}
+      #- MYSQL_PASSWORD=${MYSQL_PASSWORD}
+    # If database is empty, then create schema and load data from loaddata.
+    # Schema: "UserData" has columns 'UserID', 'ItemID', and 'Preference'.
+    # Ref: https://stackoverflow.com/questions/29145370/how-can-i-initialize-a-mysql-database-with-schema-in-a-docker-container
+    ports:
+      - 3306:3306
+    restart: always
+    volumes:
+      - "dbdata:/var/lib/mysql"
+      - "dbcreate:/docker-entrypoint-initdb.d"
+volumes:
+  dbdata:
+  dbcreate:
+    external: true
