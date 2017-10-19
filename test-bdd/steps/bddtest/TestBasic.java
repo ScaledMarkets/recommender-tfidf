@@ -119,15 +119,21 @@ public class TestBasic extends TestBase {
 			null);
 	}
 	
-	@When("^I remotely request a recommendation for a user$")
-	public void i_remotely_request_a_recommendation_for_a_user() throws Exception {
+	@When("^I remotely request a recommendation for user (\\d+) with threshold (\\d+.\\d+)$")
+	public void i_remotely_request_a_recommendation_for_user(long userId, double threshold) throws Exception {
 		
 		// Re-initialize the expected result container.
 		this.recommendations = new LinkedList<RecommendedItem>();
 		
-		// Make remote GET request, and verify the JSON response.
+		// Prepare remote GET request.
 		Client client = ClientBuilder.newClient();
 		WebTarget target = client.target(Scheme + "://" + Host + ":" + Port + "/recommend");
+		
+		// Add query params: threshold, userid.
+		target = target.queryParam("userid", String.valueOf(userId));
+		target = target.queryParam("threshold", String.valueOf(threshold));
+		
+		// Perform remote request.
 		Response response = target.request("application/json").get();
 		if (response.getStatus() >= 300) {
 			System.out.println(response.getStatusInfo().getReasonPhrase());

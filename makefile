@@ -147,7 +147,7 @@ unit_test: compile_unit_tests jar
 bdd_deploy_local: prep_mysql
 	# Start mysql.
 	MYSQL_ROOT_PASSWORD=test \
-		MYSQL_DATABASE=mysql \
+		MYSQL_DATABASE=test \
 		MYSQL_USER=test \
 		MYSQL_PASSWORD=test \
 		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
@@ -159,7 +159,7 @@ bdd_deploy_local: prep_mysql
 d: 
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		mysql localhost 3306 UserPrefs test test 8080
+		test localhost 3306 UserPrefs test test 8080 verbose
 
 # Deploy for running behavioral tests.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
@@ -176,7 +176,7 @@ bdd_deploy: prep_mysql
 		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
 	# Run the Compose file to deploy the recommender.
 	ImageName=$(ImageName) \
-		DATABASE_NAME=mysql \
+		DATABASE_NAME=test \
 		MYSQL_HOST=localhost \
 		MYSQL_PORT=3306 \
 		TABLE_NAME=UserPrefs \

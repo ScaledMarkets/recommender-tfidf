@@ -45,6 +45,7 @@ import com.google.gson.Gson;
 
 import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
 import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
+import scaledmarkets.recommenders.messages.Messages.ErrorMessage;
 
 /**
  * Obtain a recommendation for a specified user, based on the user's similarity
@@ -68,6 +69,8 @@ public class UserSimilarityRecommender {
 	final static int NeighborhoodSize = 1;
 	final static double NeighborhoodThreshold = 0.1;
 	
+	static boolean verbose = false;
+	
 	public static void main(String[] args) throws Exception {
 
 		if ((args.length >= 1) &&
@@ -77,7 +80,7 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length != 7) {
+		if (args.length < 7) {
 			printUsage();
 			System.exit(1);
 		}
@@ -90,6 +93,11 @@ public class UserSimilarityRecommender {
 		String dbUsername = args[4];
 		String dbPassword = args[5];
 		String svcPortStr = args[6];
+		if (args.length > 7) {
+			if (args[7].equals("verbose")) {
+				verbose = true;
+			}
+		}
 		
 		int dbPort = Integer.parseInt(dbPortStr);
 		int svcPort = Integer.parseInt(svcPortStr);
@@ -124,27 +132,50 @@ public class UserSimilarityRecommender {
 		port(svcPort);
 		get("/recommend", "application/json", (Request request, Response response) -> {
 			
-			String thresholdStr = request.queryParams("threshold");
-			String userIdStr = request.queryParams("userid");
+			if (verbose) System.out.println("Received request...");
 			
-			double threshold = Double.parseDouble(thresholdStr);
-			long userId = Long.parseLong(userIdStr);
-
-			List<RecommendedItem> recs = recommender.recommend(threshold, userId, 1);
-			
-			RecommendedItem rec;
-			if (recs.size() == 0) {
-				rec = null;
-			} else if (recs.size() == 1) {
-				rec = recs.get(0);
-			} else throw new RuntimeException(
-				"Multiple recommendations returned");
+			try {
+				String thresholdStr = request.queryParams("threshold");
+				String userIdStr = request.queryParams("userid");
 				
-			// Construct output message.
-			if (rec == null) {
-				return new NoRecommendationMessage();
-			} else {
-				return new RecommendationMessage(rec.getItemID(), rec.getValue());
+				if (thresholdStr.equals("")) {
+					response.status(400);
+					return new ErrorMessage("Missing query parm: threshold");
+				}
+				
+				if (userIdStr.equals("")) {
+					response.status(400);
+					return new ErrorMessage("Missing query parm: userid");
+				}
+				
+				if (verbose) System.out.println("Received parameters...");
+				
+				double threshold = Double.parseDouble(thresholdStr);
+				long userId = Long.parseLong(userIdStr);
+	
+				List<RecommendedItem> recs = recommender.recommend(threshold, userId, 1);
+				
+				if (verbose) System.out.println("Obtained recommendation...");
+				
+				RecommendedItem rec;
+				if (recs.size() == 0) {
+					rec = null;
+				} else if (recs.size() == 1) {
+					rec = recs.get(0);
+				} else throw new RuntimeException(
+					"Multiple recommendations returned");
+					
+				// Construct output message.
+				if (rec == null) {
+					return new NoRecommendationMessage();
+				} else {
+					return new RecommendationMessage(rec.getItemID(), rec.getValue());
+				}
+			} catch (Throwable t) {
+				response.status(500);
+				return new ErrorMessage(t.getMessage());
+			} finally {
+				if (verbose) System.out.println("...returning.");
 			}
 			
 		}, new JsonTransformer());  // render message as JSON
@@ -162,17 +193,20 @@ public class UserSimilarityRecommender {
 	public List<RecommendedItem> recommend(double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
 		
 		// Select a user similarity strategy.
+		if (verbose) System.out.println("Defining a PearsonCorrelationSimilarity...");
 		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(this.model);
 		UserNeighborhood neighborhood =
 			new ThresholdUserNeighborhood(
 				neighborhoodThreshold, userSimilarity, model);
-		
+				
 		// Create a recommender.
+		if (verbose) System.out.println("Defining a GenericUserBasedRecommender...");
 		Recommender recommender =
 			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
 		//Recommender cachingRecommender = new CachingRecommender(recommender);
-		
+				
 		// Obtain recommendations.
+		if (verbose) System.out.println("Calling recommend on the recommender...");
 		List<RecommendedItem> recommendations =
 			recommender.recommend(userId, noOfRecs);
 		
@@ -198,5 +232,6 @@ public class UserSimilarityRecommender {
 		System.out.println("\tdatabase-username");
 		System.out.println("\tdatabase-password");
 		System.out.println("\tport on which the recommender service should run");
+		System.out.println("\tverbose (optional) - the string 'verbose'");
 	}
 }

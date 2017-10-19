@@ -4,6 +4,13 @@ public class Messages {
 	
 	public static class Message {
 	}
+	
+	public static class ErrorMessage extends Message {
+		public ErrorMessage(String msg) { this.message = msg; }
+		public String message;
+		public void setMessage(String msg) { this.message = msg; }
+		public String getMessage() { return this.message; }
+	}
 
 	public static class NoRecommendationMessage extends Message {
 		public String message = "No recommendation";
