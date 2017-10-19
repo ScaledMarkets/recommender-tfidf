@@ -66,9 +66,6 @@ import scaledmarkets.recommenders.messages.Messages.ErrorMessage;
  */
 public class UserSimilarityRecommender {
 		
-	final static int NeighborhoodSize = 1;
-	final static double NeighborhoodThreshold = 0.1;
-	
 	static boolean verbose = false;
 	
 	public static void main(String[] args) throws Exception {
