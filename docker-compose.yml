@@ -3,10 +3,8 @@ services:
   # Deploy the recommender as a Web service. Requires a mysql database to be running,
   # with a table called "UserPrefs" containing the fields as defined in create_schema.sql.
   recommender:
-    image: scaledmarkets/recommender_tfidf-usersimrec
-    #image: ${ImageName}
+    image: ${ImageName}
     # Provide arguments for the entrypoint, which is specified in the Dockerfile:
-    command: ["mysql", "localhost", "3306", "UserPrefs", "test", "test", "8080"]
-    #command: ["${DATABASE_NAME}", "${MYSQL_HOST}", "${MYSQL_PORT}", "${TABLE_NAME}", "${MYSQL_USER}", "${MYSQL_PASSWORD}", "${PORT}"]
+    command: ["${DATABASE_NAME}", "${MYSQL_HOST}", "${MYSQL_PORT}", "${TABLE_NAME}", "${MYSQL_USER}", "${MYSQL_PASSWORD}", "${PORT}"]
     ports:
       - ${PORT}:${PORT}
