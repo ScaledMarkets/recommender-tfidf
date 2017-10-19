@@ -8,3 +8,6 @@ reference/
 *.jar
 *.marks
 *.csv
+maven/
+test-bdd/maven/
+.vagrant/
