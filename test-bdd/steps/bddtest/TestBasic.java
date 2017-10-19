@@ -36,7 +36,7 @@ import javax.ws.rs.client.WebTarget;
 
 public class TestBasic extends TestBase {
 	
-	private static final String scheme = "http"'
+	private static final String Scheme = "http";
 	private static final String Host = "127.0.0.1";
 	private static final String Port = "8080";
 	
@@ -66,7 +66,7 @@ public class TestBasic extends TestBase {
 			stmt = con.createStatement();
 			
 			// User 1
-			stmt.executeUpdate("DELETE FROM UserPrefs WHERE UserID = *");
+			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,10,1.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,11,2.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,12,5.0)");
@@ -127,9 +127,10 @@ public class TestBasic extends TestBase {
 		
 		// Make remote GET request, and verify the JSON response.
 		Client client = ClientBuilder.newClient();
-		WebTarget target = client.target(scheme + "://" + host + ":" + port + "/recommend");
+		WebTarget target = client.target(Scheme + "://" + Host + ":" + Port + "/recommend");
 		Response response = target.request("application/json").get();
 		if (response.getStatus() >= 300) {
+			System.out.println(response.getStatusInfo().getReasonPhrase());
 			throw new Exception(response.getStatusInfo().getReasonPhrase());
 		}
 		String output = response.readEntity(String.class);

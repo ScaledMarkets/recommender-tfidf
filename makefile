@@ -142,19 +142,28 @@ unit_test: compile_unit_tests jar
 
 # Deploy for running behavioral tests.
 # This deploys locally by running main - no container is used.
-bdd_deploy_local:
+# Note: The mysql part of this task must be run on a docker host - but OS-X docker
+# does not seem to work with the mysql image.
+bdd_deploy_local: prep_mysql
+	# Start mysql.
+	MYSQL_ROOT_PASSWORD=test \
+		MYSQL_DATABASE=mysql \
+		MYSQL_USER=test \
+		MYSQL_PASSWORD=test \
+		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
+	# Run the recognizer directly (as a Java app - not as a container).
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		mysql localhost 3306 UserPrefs test test
+		mysql localhost 3306 UserPrefs test test 8080
+
+d: 
+	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
+		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		mysql localhost 3306 UserPrefs test test 8080
 
 # Deploy for running behavioral tests.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
-bdd_deploy: 
-	# Create volume for the database.
-	sudo docker volume create dbcreate
-	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
-	# Copy the database creation SQL to the volume area.
-	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
+bdd_deploy: prep_mysql
 	# Obtain the application image.
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	docker pull $(ImageName)
@@ -164,7 +173,7 @@ bdd_deploy:
 		MYSQL_DATABASE=mysql \
 		MYSQL_USER=test \
 		MYSQL_PASSWORD=test \
-		docker-compose -f test-bdd/docker-compose-mysql.yml up
+		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
 	# Run the Compose file to deploy the recommender.
 	ImageName=$(ImageName) \
 		DATABASE_NAME=mysql \
@@ -174,10 +183,19 @@ bdd_deploy:
 		MYSQL_USER=test \
 		MYSQL_PASSWORD=test \
 		PORT=8080 \
-		docker-compose up
+		docker-compose up -d
+
+# Install the artifacts required for mysql.
+prep_mysql:
+	# Create volume for the database.
+	sudo docker volume create dbcreate
+	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
+	# Copy the database creation SQL to the volume area.
+	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
 
 # Run BDD tests.
 bdd: #compile_bdd_tests bdd_deploy
+	# Use maven to determine the classpath for the test program, and then run the test program.
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
 	$$JAVA -cp $$CUCUMBER_CP:$$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
@@ -185,6 +203,9 @@ bdd: #compile_bdd_tests bdd_deploy
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \
 		--tags @done --tags @usersimrec --tags @database; \
 	}
+	# Stop mysql.
+	docker-compose stop mysql
+	docker rm mysql
 
 test: unit_test bdd
 

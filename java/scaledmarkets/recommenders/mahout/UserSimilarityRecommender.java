@@ -37,6 +37,7 @@ import javax.sql.DataSource;
 import com.mysql.cj.jdbc.MysqlDataSource;
 
 import static spark.Spark.get;
+import static spark.Spark.port;
 import spark.ResponseTransformer;
 import spark.Request;
 import spark.Response;
@@ -196,5 +197,6 @@ public class UserSimilarityRecommender {
 			"\t\t'UserID', 'ItemID', and 'Preference'.");
 		System.out.println("\tdatabase-username");
 		System.out.println("\tdatabase-password");
+		System.out.println("\tport on which the recommender service should run");
 	}
 }
