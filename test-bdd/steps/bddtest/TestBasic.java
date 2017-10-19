@@ -47,8 +47,8 @@ public class TestBasic extends TestBase {
 	 * MySql command reference:
 	 *	http://www.pantz.org/software/mysql/mysqlcommands.html
 	 */
-	@Given("^four users and their item preferences in a database$")
-	public void four_users_and_their_item_preferences_in_a_database() throws Exception {
+	@Given("^ten users and identical item preferences in a database$")
+	public void ten_users_and_identical_item_preferences_in_a_database() throws Exception {
 		
 		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
@@ -65,6 +65,59 @@ public class TestBasic extends TestBase {
 			con = dataSource.getConnection();
 			stmt = con.createStatement();
 			
+			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
+			
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,101,2.8)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,105,1.1)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,115,3.4)");
+		
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (10,100,3.5)");
+			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (10,101,2.8)");
+			
+			
+			
+			/*
 			// User 1
 			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,10,1.0)");
@@ -105,6 +158,8 @@ public class TestBasic extends TestBase {
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,16,1.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,17,4.0)");
 			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,18,1.0)");
+			*/
+			
 		} finally {
 			if(stmt != null) stmt.close();
 			if(con != null) con.close();
@@ -140,20 +195,22 @@ public class TestBasic extends TestBase {
 			throw new Exception(response.getStatusInfo().getReasonPhrase());
 		}
 		String output = response.readEntity(String.class);
+		System.out.println("output: " + output);
 		
 		// Parse JSON.
 		Gson gson = new Gson();
 		RecommendedItem rec = null;
+		
 		try {
-			NoRecommendationMessage noRefMsg;
-			noRefMsg = gson.fromJson(output, NoRecommendationMessage.class);
-			// There are no recommendations.
-		} catch (JsonSyntaxException ex) {
+			RecommendationMessage recMsg = gson.fromJson(output, RecommendationMessage.class);
+			rec = new LocalRecommendation(recMsg.itemID, recMsg.value);
+			this.recommendations.add(rec);
+		} catch (JsonSyntaxException ex2) {
 			try {
-				RecommendationMessage recMsg = gson.fromJson(output, RecommendationMessage.class);
-				rec = new LocalRecommendation(recMsg.itemID, recMsg.value);
-				this.recommendations.add(rec);
-			} catch (JsonSyntaxException ex2) {
+				NoRecommendationMessage noRefMsg;
+				noRefMsg = gson.fromJson(output, NoRecommendationMessage.class);
+				// There are no recommendations.
+			} catch (JsonSyntaxException ex) {
 				throw new Exception(
 					"Message from server is an unexpected type. Json=" + output);
 			}

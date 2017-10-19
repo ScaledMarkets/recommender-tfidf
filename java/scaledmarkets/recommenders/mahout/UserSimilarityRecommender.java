@@ -135,20 +135,21 @@ public class UserSimilarityRecommender {
 			if (verbose) System.out.println("Received request...");
 			
 			try {
-				String thresholdStr = request.queryParams("threshold");
 				String userIdStr = request.queryParams("userid");
-				
-				if (thresholdStr.equals("")) {
-					response.status(400);
-					return new ErrorMessage("Missing query parm: threshold");
-				}
+				String thresholdStr = request.queryParams("threshold");
 				
 				if (userIdStr.equals("")) {
 					response.status(400);
 					return new ErrorMessage("Missing query parm: userid");
 				}
 				
-				if (verbose) System.out.println("Received parameters...");
+				if (thresholdStr.equals("")) {
+					response.status(400);
+					return new ErrorMessage("Missing query parm: threshold");
+				}
+				
+				if (verbose) System.out.println("Received parameters: userid=" + userIdStr +
+					", threshold=" + thresholdStr);
 				
 				double threshold = Double.parseDouble(thresholdStr);
 				long userId = Long.parseLong(userIdStr);

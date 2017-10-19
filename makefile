@@ -137,7 +137,7 @@ $(test_build_dir):
 	mkdir -p $(test_build_dir)
 
 # Run unit tests.
-unit_test: compile_unit_tests jar
+unit_test: #compile_unit_tests jar
 	$(MVN) test
 
 # Deploy for running behavioral tests.
@@ -204,7 +204,7 @@ bdd: #compile_bdd_tests bdd_deploy
 		--tags @done --tags @usersimrec --tags @database; \
 	}
 	# Stop mysql.
-	docker-compose stop mysql
+	docker stop mysql
 	docker rm mysql
 
 test: unit_test bdd
