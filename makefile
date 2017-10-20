@@ -144,36 +144,24 @@ unit_test: #compile_unit_tests jar
 # This deploys locally by running main - no container is used.
 # Note: The mysql part of this task must be run on a docker host - but OS-X docker
 # does not seem to work with the mysql image.
-bdd_deploy_local: prep_mysql
-	# Start mysql.
-	MYSQL_ROOT_PASSWORD=test \
-		MYSQL_DATABASE=test \
-		MYSQL_USER=test \
-		MYSQL_PASSWORD=test \
-		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
+bdd_deploy_local: start_mysql
 	# Run the recognizer directly (as a Java app - not as a container).
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		mysql localhost 3306 UserPrefs test test 8080
+		mysql localhost 3306 UserPrefs test test 8080 0.1
 
 d: 
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		test localhost 3306 UserPrefs test test 8080 verbose
+		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
 # Deploy for running behavioral tests.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
-bdd_deploy: prep_mysql
+bdd_deploy: start_mysql
 	# Obtain the application image.
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	docker pull $(ImageName)
 	docker logout
-	# Deploy a mysql database.
-	MYSQL_ROOT_PASSWORD=test \
-		MYSQL_DATABASE=mysql \
-		MYSQL_USER=test \
-		MYSQL_PASSWORD=test \
-		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
 	# Run the Compose file to deploy the recommender.
 	ImageName=$(ImageName) \
 		DATABASE_NAME=test \
@@ -183,6 +171,7 @@ bdd_deploy: prep_mysql
 		MYSQL_USER=test \
 		MYSQL_PASSWORD=test \
 		PORT=8080 \
+		NEIGHBORHOOD_THRESHOLD=0.1 \
 		docker-compose up -d
 
 # Install the artifacts required for mysql.
@@ -192,6 +181,13 @@ prep_mysql:
 	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
 	# Copy the database creation SQL to the volume area.
 	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
+
+start_mysql:
+	MYSQL_ROOT_PASSWORD=test \
+		MYSQL_DATABASE=mysql \
+		MYSQL_USER=test \
+		MYSQL_PASSWORD=test \
+		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
 
 # Run BDD tests.
 bdd: #compile_bdd_tests bdd_deploy

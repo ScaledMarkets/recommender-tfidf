@@ -54,19 +54,18 @@ import scaledmarkets.recommenders.messages.Messages.ErrorMessage;
  * that has columns 'UserID', 'ItemID', and 'Preference'.
  * This implementation is intended for small datasets. For large datasets, use
  * the Hadoop based implemenation, UserSimilarityRecommenderJob, which uses HDFS.
+ *
+ * To do:
+ *	Wrap the JDBC model with the ReloadFromJDBCDataModel to load data into memory.
+ *	Use CachingRecommender on top of the Recommender implementation.
  * 
- * Code comes from example at,
- *	https://mahout.apache.org/users/recommender/recommender-documentation.html
- *
- * See also,
- *	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
- *
  * To use Apache Spark:
  *	https://mahout.apache.org/users/environment/how-to-build-an-app.html
  */
 public class UserSimilarityRecommender {
 		
 	static boolean verbose = false;
+	static Recommender recommender;
 	
 	public static void main(String[] args) throws Exception {
 
@@ -77,7 +76,7 @@ public class UserSimilarityRecommender {
 			System.exit(1);
 		}
 		
-		if (args.length < 7) {
+		if (args.length < 8) {
 			printUsage();
 			System.exit(1);
 		}
@@ -90,7 +89,8 @@ public class UserSimilarityRecommender {
 		String dbUsername = args[4];
 		String dbPassword = args[5];
 		String svcPortStr = args[6];
-		if (args.length > 7) {
+		String thresholdStr = args[7];
+		if (args.length > 8) {
 			if (args[7].equals("verbose")) {
 				verbose = true;
 			}
@@ -98,6 +98,7 @@ public class UserSimilarityRecommender {
 		
 		int dbPort = Integer.parseInt(dbPortStr);
 		int svcPort = Integer.parseInt(svcPortStr);
+		double neighborhoodThreshold = Double.parseDouble(thresholdStr);
 		
 		MysqlDataSource dataSource = new MysqlDataSource();
 		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
@@ -119,39 +120,55 @@ public class UserSimilarityRecommender {
 			"Preference",
 			null);
 		
-		// Create a singleton instance of our recommender.
-		UserSimilarityRecommender recommender = new UserSimilarityRecommender(model);
+		// Pearson correlation:
+		//	https://en.wikipedia.org/wiki/Pearson_product-moment_correlation_coefficient
+		if (verbose) System.out.println("Defining a PearsonCorrelationSimilarity...");
+		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(model);
 		
+		// Select a user similarity strategy.
+		if (verbose) System.out.println("Defining a ThresholdUserNeighborhood...");
+		UserNeighborhood neighborhood =
+			new ThresholdUserNeighborhood(
+				neighborhoodThreshold, userSimilarity, model);
+				
+		// Create a recommender.
+		if (verbose) System.out.println("Defining a GenericUserBasedRecommender...");
+		recommender =
+			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
+		recommender = new CachingRecommender(recommender);
+				
 		// Install REST handler that invokes our recommender.
 		// For info on SparkJava Web service framework (not related to Apache Spark):
 		//	http://blog.sahil.me/posts/simple-web-services-and-java/
 		//	http://sparkjava.com/
 		port(svcPort);
+
+		/* Install handler.
+		 * Use Mahout to analyze the data and generate a recommendation.
+		 * From this example:
+		 *	https://mahout.apache.org/users/recommender/userbased-5-minutes.html
+		 * See also,
+		 *	https://mahout.apache.org/users/recommender/recommender-documentation.html
+		 */
 		get("/recommend", "application/json", (Request request, Response response) -> {
 			
 			if (verbose) System.out.println("Received request...");
 			
 			try {
 				String userIdStr = request.queryParams("userid");
-				String thresholdStr = request.queryParams("threshold");
 				
 				if (userIdStr.equals("")) {
 					response.status(400);
 					return new ErrorMessage("Missing query parm: userid");
 				}
 				
-				if (thresholdStr.equals("")) {
-					response.status(400);
-					return new ErrorMessage("Missing query parm: threshold");
-				}
+				if (verbose) System.out.println("Received parameters: userid=" + userIdStr);
 				
-				if (verbose) System.out.println("Received parameters: userid=" + userIdStr +
-					", threshold=" + thresholdStr);
-				
-				double threshold = Double.parseDouble(thresholdStr);
 				long userId = Long.parseLong(userIdStr);
 	
-				List<RecommendedItem> recs = recommender.recommend(threshold, userId, 1);
+				// Obtain recommendations.
+				if (verbose) System.out.println("Calling recommend on the recommender...");
+				List<RecommendedItem> recs = recommender.recommend(userId, 1);
 				
 				if (verbose) System.out.println("Obtained recommendation...");
 				
@@ -185,32 +202,6 @@ public class UserSimilarityRecommender {
 		this.model = model;
 	}
 	
-	/**
-	 * Use Mahout to analyze the data and generate a recommendation.
-	 */
-	public List<RecommendedItem> recommend(double neighborhoodThreshold, long userId, int noOfRecs) throws Exception {
-		
-		// Select a user similarity strategy.
-		if (verbose) System.out.println("Defining a PearsonCorrelationSimilarity...");
-		UserSimilarity userSimilarity = new PearsonCorrelationSimilarity(this.model);
-		UserNeighborhood neighborhood =
-			new ThresholdUserNeighborhood(
-				neighborhoodThreshold, userSimilarity, model);
-				
-		// Create a recommender.
-		if (verbose) System.out.println("Defining a GenericUserBasedRecommender...");
-		Recommender recommender =
-			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
-		//Recommender cachingRecommender = new CachingRecommender(recommender);
-				
-		// Obtain recommendations.
-		if (verbose) System.out.println("Calling recommend on the recommender...");
-		List<RecommendedItem> recommendations =
-			recommender.recommend(userId, noOfRecs);
-		
-		return recommendations;
-	}
-	
 	static class JsonTransformer implements ResponseTransformer {
 		private Gson gson = new Gson();
 		
@@ -230,6 +221,7 @@ public class UserSimilarityRecommender {
 		System.out.println("\tdatabase-username");
 		System.out.println("\tdatabase-password");
 		System.out.println("\tport on which the recommender service should run");
+		System.out.println("\tneighborhoodThreshold");
 		System.out.println("\tverbose (optional) - the string 'verbose'");
 	}
 }

@@ -186,7 +186,6 @@ public class TestBasic extends TestBase {
 		
 		// Add query params: threshold, userid.
 		target = target.queryParam("userid", String.valueOf(userId));
-		target = target.queryParam("threshold", String.valueOf(threshold));
 		
 		// Perform remote request.
 		Response response = target.request("application/json").get();
