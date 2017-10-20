@@ -57,7 +57,6 @@ import scaledmarkets.recommenders.messages.Messages.ErrorMessage;
  *
  * To do:
  *	Wrap the JDBC model with the ReloadFromJDBCDataModel to load data into memory.
- *	Use CachingRecommender on top of the Recommender implementation.
  * 
  * To use Apache Spark:
  *	https://mahout.apache.org/users/environment/how-to-build-an-app.html
