@@ -137,7 +137,7 @@
 				<version>3.7.0</version>
 				<configuration>
 					<compilerArguments>
-						<Xmaxerrs>5</Xmaxerrs>
+						<Xmaxerrs>${env.maxerrs}</Xmaxerrs>
 					</compilerArguments>
 				</configuration>
 			</plugin>
