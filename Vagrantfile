@@ -1,4 +1,6 @@
-# For creating a local VM in which we can deploy and test recommender-tfidf.
+# For creating a local VM in which we can deploy and test recommender-tfidf
+# as a container. This is necessary because the mysql container image does not
+# seem to work in OS-X Docker.
 
 Vagrant.configure(2) do |config|
 
