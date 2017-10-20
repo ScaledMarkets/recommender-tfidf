@@ -1,7 +1,11 @@
 # This file should not need to be edited. Build configurations are set in
-# makefile.inc.
+# an environment file, which is env.mac by default.
 
-include makefile.inc
+ifdef env
+	include env
+else
+	include env.mac
+endif
 
 # Names: -----------------------------------------------------------------------
 
@@ -21,7 +25,6 @@ export MESSAGES_JAR_NAME := $(PROJECTNAME)-messages-$(VERSION).jar
 export ImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export unit_test_package := unittest
 export bdd_test_package := bddtest
-export MVN := $(MAVEN_HOME)/bin/mvn
 
 # Locations of generated artifacts: --------------------------------------------
 
@@ -33,8 +36,6 @@ export message_build_dir := $(PROJECTROOT)/shared/classes
 
 # Tools: -----------------------------------------------------------------------
 export SHELL := /bin/bash
-export JAVA := $(JAVA_HOME)/bin/java
-export JAVAC := $(JAVA_HOME)/bin/javac
 
 # Tasks: -----------------------------------------------------------------------
 
@@ -115,7 +116,6 @@ image: $(IMAGEBUILDDIR) jar
 	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
-	# Before doing that, make sure JAVA_HOME is set as in makefile.inc.
 	mkdir -p $(IMAGEBUILDDIR)/jars
 	{ \
 	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1`; \
@@ -194,7 +194,7 @@ bdd: #compile_bdd_tests bdd_deploy
 	# Use maven to determine the classpath for the test program, and then run the test program.
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
-	$$JAVA -cp $$CUCUMBER_CP:$$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
+	$$JAVA -cp $$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
 		cucumber.api.cli.Main \
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \
 		--tags @done --tags @usersimrec --tags @database; \

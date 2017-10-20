@@ -7,15 +7,20 @@ Vagrant.configure(2) do |config|
 	config.vm.box_version = "1.0.0"
 	config.vm.network "forwarded_port", guest: 3306, host: 3306
 	
-	# Synced folders: the host directory containing this Vagrantfile is automatically
-	# mapped to the VM folder /vagrant.
+	# Synced folders.
+	# Note: the host directory containing this Vagrantfile is automatically mapped
+	# to the VM folder /vagrant.
+	config.vm.synced_folder "/Transient", "/Transient", create: true
 	
 	# Networking.
 	config.vm.network "forwarded_port", guest: 8983, host: 8983  # needed to reach SOLR
 	
 	# Software provisioning.
 	config.vm.provision "shell",
-    	inline: "sudo yum install -y java-1.7.0-openjdk"  # needed for SOLR
+    	inline: "sudo yum install -y java-1.7.0-openjdk"
+    
+	config.vm.provision "shell",
+    	inline: "sudo yum install -y java-1.7.0-openjdk-devel"
     
 	config.vm.provision "shell",
 		inline: "sudo yum install -y net-tools"  # basic tools such as ifconfig
@@ -40,5 +45,11 @@ Vagrant.configure(2) do |config|
 	
 	config.vm.provision "shell",
 		inline: "sudo chmod +x /usr/local/bin/docker-compose"
+	
+	config.vm.provision "shell",
+		inline: "sudo yum install -y maven"
+	
+	config.vm.provision "shell",
+		inline: "mvn install:install-file "
 
 end
