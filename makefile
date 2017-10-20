@@ -144,16 +144,11 @@ unit_test: #compile_unit_tests jar
 # This deploys locally by running main - no container is used.
 # Note: The mysql part of this task must be run on a docker host - but OS-X docker
 # does not seem to work with the mysql image.
-bdd_deploy_local: start_mysql
+bdd_deploy_local: #start_mysql
 	# Run the recognizer directly (as a Java app - not as a container).
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		mysql localhost 3306 UserPrefs test test 8080 0.1
-
-d: 
-	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
-		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		test localhost 3306 UserPrefs test test 8080 0.1 verbose
+		mysql localhost 3306 UserPrefs test test 8080 0.1 verbose
 
 # Deploy for running behavioral tests.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
