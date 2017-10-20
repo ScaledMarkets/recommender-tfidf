@@ -1,5 +1,11 @@
 # This file should not need to be edited. Build configurations are set in
-# an environment file, which is env.mac by default.
+# an environment file, which is env.mac by default. To use a different environment
+# configuration, run this makefile as,
+# 	make env=<other-env-file>
+# where <other-env-file> is a file that defines the required environment variables,
+# just as env.mac does. For example, to use the env.vm environment configuration,
+# use this command:
+# 	make env=env.vm
 
 ifdef env
 	include env
