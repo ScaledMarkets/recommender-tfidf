@@ -1,6 +1,6 @@
-# This file should not need to be edited. Build configurations are set in
-# an environment file, which is env.mac by default. To use a different environment
-# configuration, run this makefile as,
+# This file should not need to be edited, except to update the version number.
+# Build configurations are set in an environment file, which is env.mac by default.
+# To use a different environment configuration, run this makefile as,
 # 	make env=<other-env-file>
 # where <other-env-file> is a file that defines the required environment variables,
 # just as env.mac does. For example, to use the env.vm environment configuration,
@@ -15,6 +15,7 @@ endif
 
 # Names: -----------------------------------------------------------------------
 
+export VERSION := 0.1
 export PROJECTROOT := $(shell pwd)
 export JAVASRCDIR := $(PROJECTROOT)/java
 export unit_test_dir := $(PROJECTROOT)/test-unit
@@ -23,7 +24,6 @@ export PRODUCTNAME := TF-IDF Recommender
 export ORG := Scaled Markets
 export GROUPNAME := recommender
 export PROJECTNAME := tfidf
-export VERSION := 0.1
 export main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
 export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export APP_JAR_NAME := $(PROJECTNAME)-$(VERSION).jar
