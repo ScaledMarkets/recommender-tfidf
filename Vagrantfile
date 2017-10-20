@@ -5,9 +5,10 @@
 Vagrant.configure(2) do |config|
 
 	config.vm.hostname = "recommender-tfidf"
+	
+	# OS.
 	config.vm.box = "amixsi/centos-7"  # includes VirtualBox Guest Additions
 	config.vm.box_version = "1.0.0"
-	config.vm.network "forwarded_port", guest: 3306, host: 3306
 	
 	# Synced folders.
 	# Note: the host directory containing this Vagrantfile is automatically mapped
@@ -15,7 +16,8 @@ Vagrant.configure(2) do |config|
 	config.vm.synced_folder "/Transient", "/Transient", create: true
 	
 	# Networking.
-	config.vm.network "forwarded_port", guest: 8983, host: 8983  # needed to reach SOLR
+	config.vm.network "forwarded_port", guest: 8080, host: 8080
+	config.vm.network "forwarded_port", guest: 3306, host: 3306
 	
 	# Software provisioning.
 	config.vm.provision "shell",
