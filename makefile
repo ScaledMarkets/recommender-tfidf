@@ -8,7 +8,7 @@
 # 	make env=env.vm
 
 ifdef env
-	include env
+	include $env
 else
 	include env.mac
 endif
@@ -51,8 +51,6 @@ export SHELL := /bin/bash
 .ONESHELL:
 .NOTPARALLEL:
 .SUFFIXES:
-.PHONY: compile build clean info
-.DELETE_ON_ERROR:
 
 all: image
 

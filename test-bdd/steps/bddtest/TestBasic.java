@@ -67,98 +67,105 @@ public class TestBasic extends TestBase {
 			
 			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
 			
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (5,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (6,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (7,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (8,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,101,2.8)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,105,1.1)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (9,115,3.4)");
-		
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (10,100,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (10,101,2.8)");
+			Object[][] data = {
 			
+				{1,100,3.5},
+				{1,101,2.8},
+				{1,105,1.1},
+				{1,115,3.4},
 			
+				{2,100,3.5},
+				{2,101,2.8},
+				{2,105,1.1},
+				{2,115,3.4},
 			
-			/*
-			// User 1
-			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,10,1.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,11,2.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,12,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,13,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,14,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,15,4.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,16,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,17,1.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (1,18,5.0)");
+				{3,100,3.5},
+				{3,101,2.8},
+				{3,105,1.1},
+				{3,115,3.4},
 			
-			// User 2
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,10,1.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,11,2.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,15,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,16,4.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,17,1.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (2,18,5.0)");
+				{4,100,3.5},
+				{4,101,2.8},
+				{4,105,1.1},
+				{4,115,3.4},
 			
-			// User 3
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,11,2.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,12,4.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,13,4.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,14,3.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,15,3.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,16,4.5)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,17,4.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (3,18,5.0)");
+				{5,100,3.5},
+				{5,101,2.8},
+				{5,105,1.1},
+				{5,115,3.4},
 			
-			// User 4
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,10,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,11,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,12,5.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,13,0.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,14,2.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,15,3.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,16,1.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,17,4.0)");
-			stmt.executeUpdate("INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (4,18,1.0)");
-			*/
+				{6,100,3.5},
+				{6,101,2.8},
+				{6,105,1.1},
+				{6,115,3.4},
+			
+				{7,100,3.5},
+				{7,101,2.8},
+				{7,105,1.1},
+				{7,115,3.4},
+			
+				{8,100,3.5},
+				{8,101,2.8},
+				{8,105,1.1},
+				{8,115,3.4},
+			
+				{9,100,3.5},
+				{9,101,2.8},
+				{9,105,1.1},
+				{9,115,3.4},
+			
+				{10,100,3.5},
+				{10,101,2.8}
+			
+				/*
+				// User 1
+				{1,10,1.0},
+				{1,11,2.0},
+				{1,12,5.0},
+				{1,13,5.0},
+				{1,14,5.0},
+				{1,15,4.0},
+				{1,16,5.0},
+				{1,17,1.0},
+				{1,18,5.0},
+				
+				// User 2
+				{2,10,1.0},
+				{2,11,2.0},
+				{2,15,5.0},
+				{2,16,4.5},
+				{2,17,1.0},
+				{2,18,5.0},
+				
+				// User 3
+				{3,11,2.5},
+				{3,12,4.5},
+				{3,13,4.0},
+				{3,14,3.0},
+				{3,15,3.5},
+				{3,16,4.5},
+				{3,17,4.0},
+				{3,18,5.0},
+				
+				// User 4
+				{4,10,5.0},
+				{4,11,5.0},
+				{4,12,5.0},
+				{4,13,0.0},
+				{4,14,2.0},
+				{4,15,3.0},
+				{4,16,1.0},
+				{4,17,4.0},
+				{4,18,1.0},
+				*/
+			
+			};
+
+			for (row : data) {
+				stmt.executeUpdate(String.format(
+					"INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (%d,%d,%f)",
+					row[0], row[1], row[2]);
+			}
 			
 		} finally {
 			if(stmt != null) stmt.close();
