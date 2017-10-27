@@ -160,12 +160,8 @@ public class TestBasic extends TestBase {
 				*/
 			
 			};
-
-			for (row : data) {
-				stmt.executeUpdate(String.format(
-					"INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (%d,%d,%f)",
-					row[0], row[1], row[2]);
-			}
+			
+			insertIntoUserPrefs(stmt, data);
 			
 		} finally {
 			if(stmt != null) stmt.close();
@@ -237,5 +233,14 @@ public class TestBasic extends TestBase {
 	public void i_obtain_one_recommendation() throws Exception {
 		assertThat(this.recommendations.size() == 1, "Expected items to have 1" +
 			" elements, but it has " + this.recommendations.size());
+	}
+	
+	protected void insertIntoUserPrefs(Statement stmt, Object[][] data) {
+		
+		for (Object[] row : data) {
+			stmt.executeUpdate(String.format(
+				"INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (%d,%d,%f)",
+				row[0], row[1], row[2]);
+		}
 	}
 }

@@ -84,45 +84,51 @@ public class TestBasic extends TestBase {
 		File csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(csvFile);
 		
-		// User 1
-		pw.println("1,10,1.0");
-		pw.println("1,11,2.0");
-		pw.println("1,12,5.0");
-		pw.println("1,13,5.0");
-		pw.println("1,14,5.0");
-		pw.println("1,15,4.0");
-		pw.println("1,16,5.0");
-		pw.println("1,17,1.0");
-		pw.println("1,18,5.0");
+		Object[][] data = {
+			
+			// User 1
+			{1,10,1.0},
+			{1,11,2.0},
+			{1,12,5.0},
+			{1,13,5.0},
+			{1,14,5.0},
+			{1,15,4.0},
+			{1,16,5.0},
+			{1,17,1.0},
+			{1,18,5.0},
+			
+			// User 2
+			{2,10,1.0},
+			{2,11,2.0},
+			{2,15,5.0},
+			{2,16,4.5},
+			{2,17,1.0},
+			{2,18,5.0},
+			
+			// User 3
+			{3,11,2.5},
+			{3,12,4.5},
+			{3,13,4.0},
+			{3,14,3.0},
+			{3,15,3.5},
+			{3,16,4.5},
+			{3,17,4.0},
+			{3,18,5.0},
+			
+			// User 4
+			{4,10,5.0},
+			{4,11,5.0},
+			{4,12,5.0},
+			{4,13,0.0},
+			{4,14,2.0},
+			{4,15,3.0},
+			{4,16,1.0},
+			{4,17,4.0},
+			{4,18,1.0}
 		
-		// User 2
-		pw.println("2,10,1.0");
-		pw.println("2,11,2.0");
-		pw.println("2,15,5.0");
-		pw.println("2,16,4.5");
-		pw.println("2,17,1.0");
-		pw.println("2,18,5.0");
+		}
 		
-		// User 3
-		pw.println("3,11,2.5");
-		pw.println("3,12,4.5");
-		pw.println("3,13,4.0");
-		pw.println("3,14,3.0");
-		pw.println("3,15,3.5");
-		pw.println("3,16,4.5");
-		pw.println("3,17,4.0");
-		pw.println("3,18,5.0");
-		
-		// User 4
-		pw.println("4,10,5.0");
-		pw.println("4,11,5.0");
-		pw.println("4,12,5.0");
-		pw.println("4,13,0.0");
-		pw.println("4,14,2.0");
-		pw.println("4,15,3.0");
-		pw.println("4,16,1.0");
-		pw.println("4,17,4.0");
-		pw.println("4,18,1.0");
+		printData(pw, data);
 		
 		pw.close();
 		
@@ -134,53 +140,60 @@ public class TestBasic extends TestBase {
 		File csvFile = new File("TestBasic.csv");
 		PrintWriter pw = new PrintWriter(csvFile);
 
-		pw.println("1,100,3.5");
-		pw.println("1,101,2.8");
-		pw.println("1,105,1.1");
-		pw.println("1,115,3.4");
+		Object[][] data = {
+			
+			{1,100,3.5},
+			{1,101,2.8},
+			{1,105,1.1},
+			{1,115,3.4},
+			
+			{2,100,3.5},
+			{2,101,2.8},
+			{2,105,1.1},
+			{2,115,3.4},
+			
+			{3,100,3.5},
+			{3,101,2.8},
+			{3,105,1.1},
+			{3,115,3.4},
+			
+			{4,100,3.5},
+			{4,101,2.8},
+			{4,105,1.1},
+			{4,115,3.4},
+			
+			{5,100,3.5},
+			{5,101,2.8},
+			{5,105,1.1},
+			{5,115,3.4},
+			
+			{6,100,3.5},
+			{6,101,2.8},
+			{6,105,1.1},
+			{6,115,3.4},
+			
+			{7,100,3.5},
+			{7,101,2.8},
+			{7,105,1.1},
+			{7,115,3.4},
+			
+			{8,100,3.5},
+			{8,101,2.8},
+			{8,105,1.1},
+			{8,115,3.4},
+			
+			{9,100,3.5},
+			{9,101,2.8},
+			{9,105,1.1},
+			{9,115,3.4},
+			
+			{10,100,3.5},
+			{10,101,2.8}
+			
+		}
 		
-		pw.println("2,100,3.5");
-		pw.println("2,101,2.8");
-		pw.println("2,105,1.1");
-		pw.println("2,115,3.4");
+		printData(pw, data);
 		
-		pw.println("3,100,3.5");
-		pw.println("3,101,2.8");
-		pw.println("3,105,1.1");
-		pw.println("3,115,3.4");
-		
-		pw.println("4,100,3.5");
-		pw.println("4,101,2.8");
-		pw.println("4,105,1.1");
-		pw.println("4,115,3.4");
-		
-		pw.println("5,100,3.5");
-		pw.println("5,101,2.8");
-		pw.println("5,105,1.1");
-		pw.println("5,115,3.4");
-		
-		pw.println("6,100,3.5");
-		pw.println("6,101,2.8");
-		pw.println("6,105,1.1");
-		pw.println("6,115,3.4");
-		
-		pw.println("7,100,3.5");
-		pw.println("7,101,2.8");
-		pw.println("7,105,1.1");
-		pw.println("7,115,3.4");
-		
-		pw.println("8,100,3.5");
-		pw.println("8,101,2.8");
-		pw.println("8,105,1.1");
-		pw.println("8,115,3.4");
-		
-		pw.println("9,100,3.5");
-		pw.println("9,101,2.8");
-		pw.println("9,105,1.1");
-		pw.println("9,115,3.4");
-		
-		pw.println("10,100,3.5");
-		pw.println("10,101,2.8");
 		pw.close();
 		
 		this.model = new FileDataModel(csvFile);
@@ -204,5 +217,12 @@ public class TestBasic extends TestBase {
 	protected void then_i_obtain_two_recommendations() throws Exception {
 		assertThat(this.recommendations.size() == 2, "Expected items to have 2" +
 			" elements, but it has " + this.recommendations.size());
+	}
+	
+	protected void printData(PrintWriter pw, Object[][] data) {
+		
+		for (Object[] row : data) {
+			pw.println(String.format("%d,%d,%f", row[0], row[1], row[2]));
+		}
 	}
 }
