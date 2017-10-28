@@ -1,5 +1,5 @@
 # What this is
-Basic TF-IDF recommender
+Basic TF-IDF recommender microservice
 
 Notes for running mahout under hadoop:
 
