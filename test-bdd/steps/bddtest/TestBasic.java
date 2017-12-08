@@ -232,7 +232,7 @@ public class TestBasic extends TestBase {
 	@Then("^I obtain one recommendation$")
 	public void i_obtain_one_recommendation() throws Exception {
 		assertThat(this.recommendations.size() == 1, "Expected items to have 1" +
-			" elements, but it has " + this.recommendations.size());
+			" element, but it has " + this.recommendations.size());
 	}
 	
 	protected void insertIntoUserPrefs(Statement stmt, Object[][] data) {

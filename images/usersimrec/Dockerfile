@@ -1,7 +1,15 @@
 FROM docker.io/centos:7
+....switch to alpine
 
 # Install Java:
 RUN yum install -y java-1.8.0-openjdk
+....switch to 9
+
+# https://docs.oracle.com/javase/9/tools/javapackager.htm
+# http://openjdk.java.net/jeps/275
+# http://openjdk.java.net/projects/jigsaw/quick-start
+....use javapackager (jlink)
+
 
 # Create directories:
 RUN mkdir /recommender-usersim

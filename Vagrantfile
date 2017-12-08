@@ -52,8 +52,5 @@ Vagrant.configure(2) do |config|
 	
 	config.vm.provision "shell",
 		inline: "sudo yum install -y maven"
-	
-	config.vm.provision "shell",
-		inline: "mvn install:install-file "
 
 end
