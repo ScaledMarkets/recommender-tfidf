@@ -110,6 +110,14 @@ jar_messages: $(jar_dir) compile_messages
 	$(MVN) install:install-file -Dfile=$(jar_dir)/$(MESSAGES_JAR_NAME) -DgroupId=$(GROUPNAME) \
 		-DartifactId=$(PROJECTNAME)-messages -Dversion=$(VERSION) -Dpackaging=jar
 
+# Create the user similarity recommender module.
+
+module:
+	javac -d mods/junk src/junk/module-info.java src/junk/junkypackage/Main.java
+	javapackager -deploy -appclass junkypackage.Main -m junk -p mods -name junky -outdir . -outfile junkyapp -native rpm
+	# java --module-path mods -m junk/junkypackage.Main
+
+
 # Build the user similarity recommender container image.
 
 $(IMAGEBUILDDIR):
