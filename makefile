@@ -8,7 +8,7 @@
 # 	make env=env.vm
 
 ifdef env
-	include $env
+	include $(env)
 else
 	include env.mac
 endif
@@ -63,7 +63,7 @@ $(message_build_dir):
 	mkdir -p $(message_build_dir)
 
 compile: $(MAVENBUILDDIR) jar_messages
-	$(MVN) compile -U -e
+	$(MVN) compile --update-snapshots --errors
 
 compile_messages: $(message_build_dir)
 	$(JAVAC) -source 8 -Xmaxerrs $(maxerrs) \
@@ -110,14 +110,6 @@ jar_messages: $(jar_dir) compile_messages
 	$(MVN) install:install-file -Dfile=$(jar_dir)/$(MESSAGES_JAR_NAME) -DgroupId=$(GROUPNAME) \
 		-DartifactId=$(PROJECTNAME)-messages -Dversion=$(VERSION) -Dpackaging=jar
 
-# Create the user similarity recommender module.
-
-module:
-	javac -d mods/junk src/junk/module-info.java src/junk/junkypackage/Main.java
-	javapackager -deploy -appclass junkypackage.Main -m junk -p mods -name junky -outdir . -outfile junkyapp -native rpm
-	# java --module-path mods -m junk/junkypackage.Main
-
-
 # Build the user similarity recommender container image.
 
 $(IMAGEBUILDDIR):
@@ -133,11 +125,11 @@ image: $(IMAGEBUILDDIR) jar
 	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1`; \
 	for path in $(echo $classpath | tr ":" "\n"); do cp path $(IMAGEBUILDDIR)/jars; done; \
 	}
-	# Execute docker build to create an image.
-	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) docker build \
-		--tag=$(ImageName) $(IMAGEBUILDDIR)
 	# Copy the message jar. These are the message types that the recommender sends.
 	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
+	# Execute docker build to create an image.
+	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) sudo docker build \
+		--tag=$(ImageName) $(IMAGEBUILDDIR)
 	# Push image to dockerhub.
 	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	sudo docker push $(ImageName)
