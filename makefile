@@ -115,18 +115,27 @@ jar_messages: $(jar_dir) compile_messages
 $(IMAGEBUILDDIR):
 	mkdir -p $(IMAGEBUILDDIR)
 
-image: $(IMAGEBUILDDIR) jar
-	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
+showdeps:
+	{
+	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` ; \
+	echo $$cp;
+	}
+
+copydeps:
 	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	mkdir -p $(IMAGEBUILDDIR)/jars
 	{ \
-	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1`; \
-	for path in $(echo $classpath | tr ":" "\n"); do cp path $(IMAGEBUILDDIR)/jars; done; \
+	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1 | tr ":" "\n"` ; \
+	for path in $$cp; do cp $$path $$IMAGEBUILDDIR/jars; done; \
 	}
+
+image: $(IMAGEBUILDDIR) jar copydeps
 	# Copy the message jar. These are the message types that the recommender sends.
 	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
+	# Check that dockerhub credentials are set.
+	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	# Execute docker build to create an image.
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) sudo docker build \
 		--tag=$(ImageName) $(IMAGEBUILDDIR)
