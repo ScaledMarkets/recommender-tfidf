@@ -33,7 +33,8 @@ import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import java.io.File;
 import java.util.List;
 import javax.sql.DataSource;
-import com.mysql.cj.jdbc.MysqlDataSource;
+//import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import static spark.Spark.get;
 import static spark.Spark.port;
@@ -89,7 +90,7 @@ public class UserSimilarityRecommender {
 		String svcPortStr = args[6];
 		String thresholdStr = args[7];
 		if (args.length > 8) {
-			if (args[7].equals("verbose")) {
+			if (args[args.length-1].equals("verbose")) {
 				verbose = true;
 			}
 		}
@@ -98,13 +99,15 @@ public class UserSimilarityRecommender {
 		int svcPort = Integer.parseInt(svcPortStr);
 		double neighborhoodThreshold = Double.parseDouble(thresholdStr);
 		
-		MysqlDataSource dataSource = new MysqlDataSource();
-		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		//MysqlDataSource dataSource = new MysqlDataSource();
 		dataSource.setUser(dbUsername);
 		dataSource.setPassword(dbPassword);
-		dataSource.setServerName(dbHostname);
 		dataSource.setPort(dbPort);
 		dataSource.setDatabaseName(dbName);
+		dataSource.setLocalSocketAddress(dbHostname);
+		//dataSource.setServerName(dbHostname);
+		
 		
 		// Define a data model.
 		// Connect to database.

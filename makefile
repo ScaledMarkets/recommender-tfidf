@@ -192,7 +192,7 @@ prep_mysql:
 
 start_mysql:
 	MYSQL_ROOT_PASSWORD=test \
-		MYSQL_DATABASE=mysql \
+		MYSQL_DATABASE=test \
 		MYSQL_USER=test \
 		MYSQL_PASSWORD=test \
 		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
@@ -212,6 +212,18 @@ bdd: #compile_bdd_tests bdd_deploy
 	docker rm mysql
 
 test: unit_test bdd
+
+run:
+	sudo docker run -it scaledmarkets/tfidf-usersimrec:latest \
+		test \
+		127.0.0.1 \
+		3306 \
+		UserPrefs \
+		test \
+		test \
+		8080 \
+		0.1 \
+		verbose
 
 # Housekeeping.
 

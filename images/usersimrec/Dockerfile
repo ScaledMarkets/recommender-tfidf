@@ -7,19 +7,12 @@ FROM jolokia/alpine-jre-8
 # Create directories:
 RUN mkdir /recommender-usersim
 RUN mkdir /jars
-RUN mkdir /jars/mahout
-RUN mkdir /jars/mysql
-RUN mkdir /jars/sparkjava
-RUN mkdir /jars/gson
 
 # Add the recommender:
 ADD ["${APP_JAR_NAME}", "/recommender-usersim/"]
 
 # Add jars needed by recommender:
-ADD ["jars/mysql/*.jar", "/jars/mysql/"]
-ADD ["jars/sparkjava/*.jar", "/jars/sparkjava/"]
-ADD ["jars/gson/*.jar", "/jars/gson/"]
-ADD ["jars/mahout/*.jar", "/jars/mahout/"]
+ADD ["jars/*.jar", "/jars/"]
 
 # Set working directory:
 WORKDIR /recommender-usersim/

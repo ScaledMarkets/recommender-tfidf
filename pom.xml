@@ -32,7 +32,8 @@
 			<id>central</id>
 			<name>Maven Repository Switchboard</name>
 			<layout>default</layout>
-			<url>http://repo1.maven.org/maven2</url>
+			<url>http://central.maven.org/maven2</url>
+			<!--url>http://repo1.maven.org/maven2</url-->
 			<snapshots>
 				<enabled>false</enabled>
 			</snapshots>
@@ -73,7 +74,7 @@
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.8-dmr</version>
+			<version>5.1.6</version>
 		</dependency>
 		
 		<dependency>
