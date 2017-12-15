@@ -14,11 +14,6 @@ import cucumber.api.java.en.When;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
-....eliminate this in order to remove dependency on jersey-client:jar:1.9
-import org.apache.mahout.cf.taste.recommender.RecommendedItem;
-import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
-import org.apache.mahout.cf.taste.model.DataModel;
-
 import java.io.File;
 import java.io.PrintWriter;
 import java.util.List;
@@ -41,8 +36,7 @@ public class TestBasic extends TestBase {
 	private static final String Host = "127.0.0.1";
 	private static final String Port = "8080";
 	
-	private DataModel model;
-	private List<RecommendedItem> recommendations;
+	private List<LocalRecommendation> recommendations;
 	
 	/*
 	 * MySql command reference:
@@ -167,21 +161,13 @@ public class TestBasic extends TestBase {
 			if(stmt != null) stmt.close();
 			if(con != null) con.close();
 		}
-		
-		// Connect mahout to database.
-		this.model = new MySQLJDBCDataModel(dataSource,
-			"UserPrefs",
-			"UserID",
-			"ItemID",
-			"Preference",
-			null);
 	}
 	
 	@When("^I remotely request a recommendation for user (\\d+) with threshold (\\d+.\\d+)$")
 	public void i_remotely_request_a_recommendation_for_user(long userId, double threshold) throws Exception {
 		
 		// Re-initialize the expected result container.
-		this.recommendations = new LinkedList<RecommendedItem>();
+		this.recommendations = new LinkedList<LocalRecommendation>();
 		
 		// Prepare remote GET request.
 		Client client = ClientBuilder.newClient();
@@ -201,7 +187,7 @@ public class TestBasic extends TestBase {
 		
 		// Parse JSON.
 		Gson gson = new Gson();
-		RecommendedItem rec = null;
+		LocalRecommendation rec = null;
 		
 		try {
 			RecommendationMessage recMsg = gson.fromJson(output, RecommendationMessage.class);
@@ -219,7 +205,7 @@ public class TestBasic extends TestBase {
 		}
 	}
 	
-	static class LocalRecommendation implements RecommendedItem {
+	static class LocalRecommendation {
 		LocalRecommendation(long itemID, float value) {
 			this.itemID = itemID; this.value = value;
 		}
