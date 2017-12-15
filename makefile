@@ -211,11 +211,16 @@ bdd_deploy: #start_mysql populate_test
 		NEIGHBORHOOD_THRESHOLD=0.1 \
 		docker-compose up -d
 
+showbdddeps:
+	${MVN} -f pom-bdd.xml dependency:tree
+	#${MVN} -f pom-bdd.xml dependency:tree -Dincludes=jersey:jersey-client:1.9
+
 # Run BDD tests.
 bdd: #compile_bdd_tests bdd_deploy
 	# Use maven to determine the classpath for the test program, and then run the test program.
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
+	echo $$cp > bdd_jars.txt; \
 	$$JAVA -cp $$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
 		cucumber.api.cli.Main \
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \

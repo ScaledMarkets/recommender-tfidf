@@ -14,6 +14,7 @@ import cucumber.api.java.en.When;
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
 
+....eliminate this in order to remove dependency on jersey-client:jar:1.9
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
 import org.apache.mahout.cf.taste.impl.model.jdbc.MySQLJDBCDataModel;
 import org.apache.mahout.cf.taste.model.DataModel;
