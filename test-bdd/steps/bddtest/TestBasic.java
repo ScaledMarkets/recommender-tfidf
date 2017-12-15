@@ -27,7 +27,7 @@ import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.Statement;
 
-import com.mysql.cj.jdbc.MysqlDataSource;
+import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -50,8 +50,7 @@ public class TestBasic extends TestBase {
 	@Given("^ten users and identical item preferences in a database$")
 	public void ten_users_and_identical_item_preferences_in_a_database() throws Exception {
 		
-		MysqlDataSource dataSource = new MysqlDataSource();
-		//ConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
+		MysqlConnectionPoolDataSource dataSource = new MysqlConnectionPoolDataSource();
 		dataSource.setUser("root");
 		dataSource.setPassword("test");
 		dataSource.setServerName("127.0.0.1");
@@ -235,12 +234,12 @@ public class TestBasic extends TestBase {
 			" element, but it has " + this.recommendations.size());
 	}
 	
-	protected void insertIntoUserPrefs(Statement stmt, Object[][] data) {
+	protected void insertIntoUserPrefs(Statement stmt, Object[][] data) throws Exception {
 		
 		for (Object[] row : data) {
 			stmt.executeUpdate(String.format(
 				"INSERT INTO UserPrefs ( UserID, ItemID, Preference ) VALUES (%d,%d,%f)",
-				row[0], row[1], row[2]);
+				row[0], row[1], row[2]));
 		}
 	}
 }

@@ -153,6 +153,34 @@ $(test_build_dir):
 unit_test: #compile_unit_tests jar
 	$(MVN) test
 
+# Install the artifacts required for mysql.
+prep_mysql:
+	# Create volume for the database.
+	sudo docker volume create dbcreate
+	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
+	# Copy the database creation SQL to the volume area.
+	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
+
+# To connect from shell,
+#	mysql -h localhost -u root -ptest -P 3306 --protocol=TCP
+start_mysql:
+	MYSQL_ROOT_PASSWORD=test \
+		MYSQL_DATABASE=test \
+		MYSQL_USER=test \
+		MYSQL_PASSWORD=test \
+		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
+
+stop_mysql:
+	docker stop mysql
+	docker rm mysql
+
+# Fill the database with test data.
+populate_test:
+	{ \
+	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
+	java -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
+	}
+
 # Deploy for running behavioral tests.
 # This deploys locally by running main - no container is used.
 # Note: The mysql part of this task must be run on a docker host - but OS-X docker
@@ -161,11 +189,12 @@ bdd_deploy_local: #start_mysql
 	# Run the recognizer directly (as a Java app - not as a container).
 	$(JAVA) -cp $(jar_dir)/$(APP_JAR_NAME):`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		mysql localhost 3306 UserPrefs test test 8080 0.1 verbose
+		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
 # Deploy for running behavioral tests.
 # Note: change this to use a mysql config file, and use a mysql acct other than root.
-bdd_deploy: start_mysql
+# https://stackoverflow.com/questions/2121829/com-mysql-jdbc-exceptions-jdbc4-communicationsexceptioncommunications-link-fail#2121962
+bdd_deploy: #start_mysql populate_test
 	# Obtain the application image.
 	docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	docker pull $(ImageName)
@@ -182,21 +211,6 @@ bdd_deploy: start_mysql
 		NEIGHBORHOOD_THRESHOLD=0.1 \
 		docker-compose up -d
 
-# Install the artifacts required for mysql.
-prep_mysql:
-	# Create volume for the database.
-	sudo docker volume create dbcreate
-	sudo mkdir -p /var/lib/docker/volumes/dbcreate/_data
-	# Copy the database creation SQL to the volume area.
-	sudo cp create_schema.sql /var/lib/docker/volumes/dbcreate/_data
-
-start_mysql:
-	MYSQL_ROOT_PASSWORD=test \
-		MYSQL_DATABASE=test \
-		MYSQL_USER=test \
-		MYSQL_PASSWORD=test \
-		docker-compose -f test-bdd/docker-compose-mysql.yml up -d
-
 # Run BDD tests.
 bdd: #compile_bdd_tests bdd_deploy
 	# Use maven to determine the classpath for the test program, and then run the test program.
@@ -207,23 +221,8 @@ bdd: #compile_bdd_tests bdd_deploy
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \
 		--tags @done --tags @usersimrec --tags @database; \
 	}
-	# Stop mysql.
-	docker stop mysql
-	docker rm mysql
 
 test: unit_test bdd
-
-run:
-	sudo docker run -it scaledmarkets/tfidf-usersimrec:latest \
-		test \
-		127.0.0.1 \
-		3306 \
-		UserPrefs \
-		test \
-		test \
-		8080 \
-		0.1 \
-		verbose
 
 # Housekeeping.
 

@@ -7,6 +7,7 @@ services:
   mysql:
     container_name: mysql
     image: mysql:8.0.3
+    command: ["--character-set-server", "latin1", "--collation-server", "latin1_swedish_ci"]
     environment:
       - MYSQL_ROOT_PASSWORD=test
       - MYSQL_DATABASE=test

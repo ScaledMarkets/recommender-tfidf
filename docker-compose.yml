@@ -5,6 +5,6 @@ services:
   recommender:
     image: ${ImageName}
     # Provide arguments for the entrypoint, which is specified in the Dockerfile:
-    command: ["${DATABASE_NAME}", "${MYSQL_HOST}", "${MYSQL_PORT}", "${TABLE_NAME}", "${MYSQL_USER}", "${MYSQL_PASSWORD}", "${PORT}", "${NEIGHBORHOOD_THRESHOLD}]
+    command: ["${DATABASE_NAME}", "${MYSQL_HOST}", "${MYSQL_PORT}", "${TABLE_NAME}", "${MYSQL_USER}", "${MYSQL_PASSWORD}", "${PORT}", "${NEIGHBORHOOD_THRESHOLD}"]
     ports:
       - ${PORT}:${PORT}
