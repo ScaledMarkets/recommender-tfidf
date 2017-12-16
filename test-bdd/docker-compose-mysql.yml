@@ -7,6 +7,9 @@ services:
   mysql:
     container_name: mysql
     image: mysql:8.0.3
+    # Override the new MySQL standard character encoding because it is incompatible
+    # with many existing Java projects. See
+    # https://dev.mysql.com/doc/relnotes/mysql/8.0/en/news-8-0-1.html
     command: ["--character-set-server", "latin1", "--collation-server", "latin1_swedish_ci"]
     environment:
       - MYSQL_ROOT_PASSWORD=test
