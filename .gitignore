@@ -9,3 +9,11 @@ test-bdd/maven/
 .vagrant/
 images/usersimrec/jars/
 SmallJavaContainer/
+*~
+.DS_Store
+*.marks
+.*
+*.class
+*#
+*.zip
+*.jar

@@ -131,6 +131,12 @@ copydeps:
 	for path in $$cp; do cp $$path $$IMAGEBUILDDIR/jars; done; \
 	}
 
+consolidate:
+	java -cp .:$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
+		"$(IMAGEBUILDDIR)/*" \
+		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		alljars.jar
+
 image: $(IMAGEBUILDDIR) jar copydeps
 	# Copy the message jar. These are the message types that the recommender sends.
 	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
