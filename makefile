@@ -66,7 +66,7 @@ compile: $(MAVENBUILDDIR) jar_messages
 	$(MVN) compile --update-snapshots --errors
 
 compile_messages: $(message_build_dir)
-	$(JAVAC) -source 8 -Xmaxerrs $(maxerrs) \
+	$(JAVAC) -Xmaxerrs $(maxerrs) \
 		-d $(message_build_dir) \
 		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
 
@@ -83,7 +83,7 @@ $(jar_dir):
 
 # Create the user similarity recommender jar.
 
-jar_app: $(jar_dir) compile
+jar_app: $(jar_dir) #compile
 	echo "Main-Class: $(main_class)" > UserSimRecManifest
 	echo "Specification-Title: $(PRODUCT_NAME) User Similarity Recommender" >> UserSimRecManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
@@ -96,7 +96,7 @@ jar_app: $(jar_dir) compile
 
 # Create jar file for the messages that are sent by the recommender. This is the
 # public interface of the application.
-jar_messages: $(jar_dir) compile_messages
+jar_messages: $(jar_dir) #compile_messages
 	echo "Specification-Title: $(PRODUCT_NAME) Message Types" >> UserSimRecMessagesManifest
 	echo "Specification-Version: $(VERSION)" >> UserSimRecMessagesManifest
 	echo "Specification-Vendor: $(ORG)" >> UserSimRecMessagesManifest
@@ -116,10 +116,7 @@ $(IMAGEBUILDDIR):
 	mkdir -p $(IMAGEBUILDDIR)
 
 showdeps:
-	{
-	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1` ; \
-	echo $$cp;
-	}
+	${MVN} dependency:build-classpath
 
 copydeps:
 	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
@@ -127,13 +124,17 @@ copydeps:
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	mkdir -p $(IMAGEBUILDDIR)/jars
 	{ \
-	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1 | tr ":" "\n"` ; \
+	cp=`${MVN} dependency:build-classpath | tail -n 7 | head -n 1 | tr ":" "\n"` ; \
 	for path in $$cp; do cp $$path $$IMAGEBUILDDIR/jars; done; \
 	}
 
+# Create a jar file that contains only the classes that are actually needed to
+# run the application. We will omit the Spark Java classes from this calcuation
+# because it is unclear which SparkJava classes are the root classes, and so
+# our computation would be suspect, and spark core is only 134K.
 consolidate:
-	java -cp .:$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
-		"$(IMAGEBUILDDIR)/*" \
+	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
+		"$(IMAGEBUILDDIR)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		alljars.jar
 
