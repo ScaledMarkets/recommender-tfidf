@@ -118,7 +118,10 @@ $(IMAGEBUILDDIR):
 showdeps:
 	${MVN} dependency:build-classpath
 
-copydeps:
+showenv:
+	env
+
+copydeps: $(IMAGEBUILDDIR)
 	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
@@ -143,6 +146,8 @@ image: $(IMAGEBUILDDIR) jar copydeps
 	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
 	# Check that dockerhub credentials are set.
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
+	# Copy dockerfile to the image build directory.
+	cp Dockerfile $(IMAGEBUILDDIR)
 	# Execute docker build to create an image.
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) sudo docker build \
 		--tag=$(ImageName) $(IMAGEBUILDDIR)
