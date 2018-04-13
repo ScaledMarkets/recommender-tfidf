@@ -1,14 +1,12 @@
 <!--
 	Do not run this pom file directly. It must be run from the makefile, because
-	the makefile sets shell variables that are used by this pom:
-		JAVASRCDIR - source code directory.
-		USERSIMRECJAVABUILDDIR - target class file directory.
+	the makefile sets shell variables that are used by this pom.
 
 	This pom builds the application and unit tests, but does not build the behavioral tests.
 
-	This pom is self-contained - it does not rely on a maven configuration (settings.xml).
+	This pom does not rely on a maven configuration (settings.xml).
 	
-	This pom overrides the standard source and target locations.
+	This pom overrides the standard compiler source and target locations.
 	-->
 
 <project>
@@ -20,8 +18,9 @@
 	<version>1.0</version>
 	
 	<properties>
-		<maven.compiler.source>1.8</maven.compiler.source>
-		<maven.compiler.target>1.8</maven.compiler.target>
+		<JarDir>${env.jar_dir}</JarDir>
+		<maven.compiler.source>${JavaVersion}</maven.compiler.source>
+		<maven.compiler.target>${JavaVersion}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.11</junit.version>
 	</properties>
@@ -65,6 +64,12 @@
 				<enabled>false</enabled>
 				<updatePolicy>daily</updatePolicy>
 			</snapshots>
+		</repository>
+		
+		<!-- For local dependencies. -->
+		<repository>
+			<id>Local</id>
+			<url>file://${JarDir}</url>		
 		</repository>
 		
 	</repositories>
@@ -123,15 +128,38 @@
 		</dependency>
 		
 	</dependencies>
-
+	
 	<build>
 	
 		<sourceDirectory>${env.JAVASRCDIR}</sourceDirectory>
 		<directory>${env.MAVENBUILDDIR}</directory>
 		<testSourceDirectory>${env.unit_test_dir}</testSourceDirectory>
-		
+				
 		<plugins>
 		
+			<!-- JDK toolchain -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-toolchains-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>   <!-- check -->
+						<goals>
+							<goal>toolchain</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<toolchains>
+						<jdk>
+							<version>${env.JavaVersion}</version>
+							<vendor>oracle</vendor>
+						</jdk>
+					</toolchains>
+				</configuration>
+			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -140,6 +168,8 @@
 					<compilerArguments>
 						<Xmaxerrs>${env.maxerrs}</Xmaxerrs>
 					</compilerArguments>
+					<source>${env.JavaVersion}</source>
+					<target>${env.JavaVersion}</target>
 				</configuration>
 			</plugin>
 			
