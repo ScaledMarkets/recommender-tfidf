@@ -137,9 +137,11 @@ copydeps: $(IMAGEBUILDDIR)
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
 	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
+		--verbose \
 		"$(IMAGEBUILDDIR)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		alljars.jar
+		alljars.jar \
+		"1.0.0" "Cliff Berg"
 
 image: $(IMAGEBUILDDIR) jar copydeps
 	# Copy the message jar. These are the message types that the recommender sends.
