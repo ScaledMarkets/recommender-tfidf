@@ -28,6 +28,7 @@ export main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
 export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export APP_JAR_NAME := $(PROJECTNAME)-$(VERSION).jar
 export MESSAGES_JAR_NAME := $(PROJECTNAME)-messages-$(VERSION).jar
+export ALL_JARS_NAME := $(PROJECTNAME)-all-jars-$(VERSION).jar
 export ImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export unit_test_package := unittest
 export bdd_test_package := bddtest
@@ -136,11 +137,11 @@ copydeps: $(IMAGEBUILDDIR)
 # because it is unclear which SparkJava classes are the root classes, and so
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
-	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
+	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* com.cliffberg.jarcon.JarConsolidator \
 		--verbose \
 		"$(IMAGEBUILDDIR)/$(APP_JAR_NAME):$(IMAGEBUILDDIR)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		alljars.jar \
+		$(ALL_JARS_NAME) \
 		"1.0.0" "Cliff Berg"
 
 image: $(IMAGEBUILDDIR) jar copydeps
@@ -194,6 +195,12 @@ populate_test:
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
 	java -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
 	}
+
+# Deploy for running behavioral tests, using the all-jars jar.
+bdd_deploy_local_alljars:
+	$(JAVA) -cp $(jar_dir)/$(ALL_JARS_NAME) \
+		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
 # Deploy for running behavioral tests.
 # This deploys locally by running main - no container is used.
