@@ -138,7 +138,7 @@ copydeps: $(IMAGEBUILDDIR)
 consolidate:
 	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* cliffberg.jarcon.JarConsolidator \
 		--verbose \
-		"$(IMAGEBUILDDIR)/jars/*" \
+		"$(IMAGEBUILDDIR)/$(APP_JAR_NAME):$(IMAGEBUILDDIR)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		alljars.jar \
 		"1.0.0" "Cliff Berg"
