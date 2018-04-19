@@ -144,7 +144,7 @@
 				<version>1.1</version>
 				<executions>
 					<execution>
-						<phase>validate</phase>   <!-- check -->
+						<phase>validate</phase>   <!-- https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html -->
 						<goals>
 							<goal>toolchain</goal>
 						</goals>
@@ -160,11 +160,14 @@
 				</configuration>
 			</plugin>
 			
+			<!-- Compiler -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.7.0</version>
 				<configuration>
+					<fork>true</fork>
+					<verbose>true</verbose>
 					<compilerArguments>
 						<Xmaxerrs>${env.maxerrs}</Xmaxerrs>
 					</compilerArguments>

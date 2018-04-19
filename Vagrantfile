@@ -13,18 +13,29 @@ Vagrant.configure(2) do |config|
 	# Synced folders.
 	# Note: the host directory containing this Vagrantfile is automatically mapped
 	# to the VM folder /vagrant.
-	config.vm.synced_folder "/Transient", "/Transient", create: true
+	config.vm.synced_folder "~/Transient/Recommenders", "/Transient", create: true
 	
 	# Networking.
 	config.vm.network "forwarded_port", guest: 8080, host: 8080
 	config.vm.network "forwarded_port", guest: 3306, host: 3306
 	
 	# Software provisioning.
+	
+	# JDK
+	# See http://openjdk.java.net/install/
+	# See http://jdk.java.net/10/
+	# See http://jdk.java.net/java-se-ri/9
 	config.vm.provision "shell",
-    	inline: "sudo yum install -y java-1.7.0-openjdk"
+    	inline: "curl https://download.java.net/openjdk/jdk9/ri/openjdk-9+181_linux-x64_ri.zip -o openjdk-9+181_linux-x64_ri.zip"
+	
+    config.vm.provision "shell",
+    	inline: "unzip openjdk-9+181_linux-x64_ri.zip"
     
-	config.vm.provision "shell",
-    	inline: "sudo yum install -y java-1.7.0-openjdk-devel"
+	#config.vm.provision "shell",
+    #	inline: "sudo yum install -y java-1.7.0-openjdk"
+    
+	#config.vm.provision "shell",
+    #	inline: "sudo yum install -y java-1.7.0-openjdk-devel"
     
 	config.vm.provision "shell",
 		inline: "sudo yum install -y net-tools"  # basic tools such as ifconfig

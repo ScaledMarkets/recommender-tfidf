@@ -165,14 +165,41 @@
 		
 		<plugins>
 		
+			<!-- JDK toolchain -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-toolchains-plugin</artifactId>
+				<version>1.1</version>
+				<executions>
+					<execution>
+						<phase>validate</phase>   <!-- https://maven.apache.org/guides/introduction/introduction-to-the-lifecycle.html -->
+						<goals>
+							<goal>toolchain</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<toolchains>
+						<jdk>
+							<version>${env.JavaVersion}</version>
+							<vendor>oracle</vendor>
+						</jdk>
+					</toolchains>
+				</configuration>
+			</plugin>
+			
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.7.0</version>
 				<configuration>
+					<fork>true</fork>
+					<verbose>true</verbose>
 					<compilerArguments>
 						<Xmaxerrs>${env.maxerrs}</Xmaxerrs>
 					</compilerArguments>
+					<source>${env.JavaVersion}</source>
+					<target>${env.JavaVersion}</target>
 				</configuration>
 			</plugin>
 			

@@ -5,11 +5,10 @@
 		<type>jdk</type>
 		<provides>
 			<version>9</version>
-			<vendor>oracle</vendor>
 			<id>jdk9</id>
 		</provides>
 		<configuration>
-			<jdkHome>....</jdkHome>
+			<jdkHome>/home/vagrant/java-se-9-ri/jdk-9</jdkHome>
 		</configuration>
 	</toolchain>
 </toolchains>

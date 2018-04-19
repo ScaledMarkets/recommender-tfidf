@@ -126,7 +126,7 @@ public class TestBasic extends TestBase {
 			{4,17,4.0},
 			{4,18,1.0}
 		
-		}
+		};
 		
 		printData(pw, data);
 		
@@ -190,7 +190,7 @@ public class TestBasic extends TestBase {
 			{10,100,3.5},
 			{10,101,2.8}
 			
-		}
+		};
 		
 		printData(pw, data);
 		
@@ -205,13 +205,6 @@ public class TestBasic extends TestBase {
 		UserNeighborhood neighborhood = new ThresholdUserNeighborhood(0.1, similarity, this.model);
 		UserBasedRecommender recommender = new GenericUserBasedRecommender(this.model, neighborhood, similarity);
 		this.recommendations = recommender.recommend(2, 2);
-	}
-
-	protected void when_i_request_two_recommendations_using_user_similarity(long userId) throws Exception {
-		
-		double neighborhoodThreshold = 0.1;
-		this.recommendations = (new UserSimilarityRecommender(this.model)).recommend(
-			neighborhoodThreshold, userId, 2);
 	}
 
 	protected void then_i_obtain_two_recommendations() throws Exception {
