@@ -28,7 +28,7 @@ export main_class := scaledmarkets.recommenders.mahout.UserSimularityRecommender
 export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export APP_JAR_NAME := $(PROJECTNAME)-$(VERSION).jar
 export MESSAGES_JAR_NAME := $(PROJECTNAME)-messages-$(VERSION).jar
-export ALL_JARS_NAME := $(PROJECTNAME)-all-jars-$(VERSION).jar
+export CONSOL_JARS_NAME := $(PROJECTNAME)-consol-jars-$(VERSION).jar
 export ImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
 export unit_test_package := unittest
 export bdd_test_package := bddtest
@@ -144,7 +144,7 @@ consolidate:
 		--verbose \
 		"$(IMAGEBUILDDIR)/$(APP_JAR_NAME):$(IMAGEBUILDDIR)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		$(ALL_JARS_NAME) \
+		$(CONSOL_JARS_NAME) \
 		"1.0.0" "Cliff Berg"
 
 image: $(IMAGEBUILDDIR) jar copydeps
@@ -199,12 +199,12 @@ showdeps_test:
 populate_test:
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
-	${TARGET_JAVA_HOME}/bin/java -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
+	${JAVA} -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
 	}
 
-# Deploy for running behavioral tests, using the all-jars jar.
-bdd_deploy_local_alljars:
-	$(JAVA) -cp $(jar_dir)/$(ALL_JARS_NAME) \
+# Deploy for running behavioral tests, using the consol-jars jar.
+bdd_deploy_local_consol_jars:
+	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME) \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
