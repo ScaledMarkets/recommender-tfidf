@@ -31,11 +31,8 @@ Vagrant.configure(2) do |config|
     config.vm.provision "shell",
     	inline: "unzip openjdk-9+181_linux-x64_ri.zip"
     
-	#config.vm.provision "shell",
-    #	inline: "sudo yum install -y java-1.7.0-openjdk"
-    
-	#config.vm.provision "shell",
-    #	inline: "sudo yum install -y java-1.7.0-openjdk-devel"
+	config.vm.provision "shell",
+    	inline: "sudo yum install -y java-1.8.0-openjdk-devel"
     
 	config.vm.provision "shell",
 		inline: "sudo yum install -y net-tools"  # basic tools such as ifconfig

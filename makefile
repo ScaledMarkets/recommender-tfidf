@@ -44,6 +44,9 @@ export message_build_dir := $(PROJECTROOT)/shared/classes
 # Tools: -----------------------------------------------------------------------
 export SHELL := /bin/bash
 
+# For Maven: -------------------------------------------------------------------
+export JAVA_HOME := $(MVN_JAVA_HOME)
+
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: all
@@ -128,7 +131,7 @@ copydeps: $(IMAGEBUILDDIR)
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	mkdir -p $(IMAGEBUILDDIR)/jars
 	{ \
-	cp=`${MVN} dependency:build-classpath | tail -n 7 | head -n 1 | tr ":" "\n"` ; \
+	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1 | tr ":" "\n"` ; \
 	for path in $$cp; do cp $$path $$IMAGEBUILDDIR/jars; done; \
 	}
 
@@ -189,11 +192,14 @@ stop_mysql:
 	docker stop mysql
 	docker rm mysql
 
+showdeps_test:
+	${MVN} -f pom-bdd.xml dependency:build-classpath
+
 # Fill the database with test data.
 populate_test:
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
-	java -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
+	${TARGET_JAVA_HOME}/bin/java -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
 	}
 
 # Deploy for running behavioral tests, using the all-jars jar.

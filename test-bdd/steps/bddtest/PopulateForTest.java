@@ -22,7 +22,7 @@ public class PopulateForTest {
 		dataSource.setServerName("127.0.0.1");
 		dataSource.setPort(3306);
 		dataSource.setDatabaseName("test");
-		dataSource.setUser("root");
+		dataSource.setUser("test");
 		dataSource.setPassword("test");
 
 		// Clear database and populate it.
