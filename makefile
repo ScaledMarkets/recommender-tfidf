@@ -128,7 +128,7 @@ copydeps: $(scratch_dir)
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	mkdir -p $(scratch_dir)/jars
 	{ \
-	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1 | tr ":" "\n"` ; \
+	cp=`${MVN} dependency:build-classpath | tail -n 7 | head -n 1 | tr ":" "\n"` ; \
 	for path in $$cp; do cp $$path $$scratch_dir/jars; done; \
 	}
 
@@ -138,7 +138,6 @@ copydeps: $(scratch_dir)
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
 	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* com.cliffberg.jarcon.JarConsolidator \
-		--verbose \
 		"$(jar_dir)/$(APP_JAR_NAME):$(scratch_dir)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		$(jar_dir)/$(CONSOL_JARS_NAME) \
@@ -149,7 +148,7 @@ consolidate:
 $(IMAGEBUILDDIR):
 	mkdir -p $(IMAGEBUILDDIR)
 
-copy_to_imagebuilddir:
+copy_to_imagebuilddir: $(IMAGEBUILDDIR)
 	cp $(jar_dir)/$(CONSOL_JARS_NAME) $(IMAGEBUILDDIR)
 	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
 	cp Dockerfile $(IMAGEBUILDDIR)
@@ -202,12 +201,13 @@ showdeps_test:
 populate_test:
 	{ \
 	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
+	echo cp=$$cp; \
 	${JAVA} -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
 	}
 
 # Deploy for running behavioral tests, using the consol-jars jar.
 bdd_deploy_local_consol_jars:
-	$(JAVA) -cp ....$(CONSOL_JARS_NAME) \
+	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME) \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 

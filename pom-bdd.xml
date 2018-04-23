@@ -105,6 +105,7 @@
 			<scope>provided</scope>
 		</dependency>
 		
+		<!--
 		<dependency>
 			<groupId>jdk.tools</groupId>
 			<artifactId>jdk.tools</artifactId>
@@ -112,6 +113,7 @@
 			<scope>system</scope>
 			<systemPath>${env.MVN_JDKToolLib}/tools.jar</systemPath>
 		</dependency> 
+		-->
 		
 		<dependency>
 			<groupId>mysql</groupId>
