@@ -80,7 +80,10 @@ compile_unit_tests:
 compile_bdd_tests: #$(test_build_dir) compile_messages
 	$(MVN) -f pom-bdd.xml -U -e compile
 
-# Create the directory into which the jars will be created.
+# Create the directories into which the jars will be created.
+
+$(scratch_dir):
+	mkdir -p $(scratch_dir)
 
 $(jar_dir):
 	mkdir -p $(jar_dir)
@@ -114,25 +117,19 @@ jar_messages: $(jar_dir) #compile_messages
 	$(MVN) install:install-file -Dfile=$(jar_dir)/$(MESSAGES_JAR_NAME) -DgroupId=$(GROUPNAME) \
 		-DartifactId=$(PROJECTNAME)-messages -Dversion=$(VERSION) -Dpackaging=jar
 
-# Build the user similarity recommender container image.
-
-$(IMAGEBUILDDIR):
-	mkdir -p $(IMAGEBUILDDIR)
+# Identify all of the dependent Jars that will be needed to deploy.
 
 showdeps:
 	${MVN} dependency:build-classpath
 
-showenv:
-	env
-
-copydeps: $(IMAGEBUILDDIR)
-	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
+copydeps: $(scratch_dir)
+	cp $(jar_dir)/$(APP_JAR_NAME) $(scratch_dir)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
-	mkdir -p $(IMAGEBUILDDIR)/jars
+	mkdir -p $(scratch_dir)/jars
 	{ \
 	cp=`${MVN} dependency:build-classpath | tail -n 8 | head -n 1 | tr ":" "\n"` ; \
-	for path in $$cp; do cp $$path $$IMAGEBUILDDIR/jars; done; \
+	for path in $$cp; do cp $$path $$scratch_dir/jars; done; \
 	}
 
 # Create a jar file that contains only the classes that are actually needed to
@@ -142,18 +139,24 @@ copydeps: $(IMAGEBUILDDIR)
 consolidate:
 	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* com.cliffberg.jarcon.JarConsolidator \
 		--verbose \
-		"$(IMAGEBUILDDIR)/$(APP_JAR_NAME):$(IMAGEBUILDDIR)/jars/*" \
+		"$(jar_dir)/$(APP_JAR_NAME):$(scratch_dir)/jars/*" \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		$(CONSOL_JARS_NAME) \
+		$(jar_dir)/$(CONSOL_JARS_NAME) \
 		"1.0.0" "Cliff Berg"
 
-image: $(IMAGEBUILDDIR) jar copydeps
-	# Copy the message jar. These are the message types that the recommender sends.
-	cp $(jar_dir)/$(MESSAGES_JAR_NAME) $(IMAGEBUILDDIR)/jars
+# Build the user similarity recommender container image.
+
+$(IMAGEBUILDDIR):
+	mkdir -p $(IMAGEBUILDDIR)
+
+copy_to_imagebuilddir:
+	cp $(jar_dir)/$(CONSOL_JARS_NAME) $(IMAGEBUILDDIR)
+	cp $(jar_dir)/$(APP_JAR_NAME) $(IMAGEBUILDDIR)
+	cp Dockerfile $(IMAGEBUILDDIR)
+	
+image: $(IMAGEBUILDDIR)
 	# Check that dockerhub credentials are set.
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
-	# Copy dockerfile to the image build directory.
-	cp Dockerfile $(IMAGEBUILDDIR)
 	# Execute docker build to create an image.
 	PROJECTNAME=$(PROJECTNAME) APP_JAR_NAME=$(APP_JAR_NAME) sudo docker build \
 		--tag=$(ImageName) $(IMAGEBUILDDIR)
@@ -204,7 +207,7 @@ populate_test:
 
 # Deploy for running behavioral tests, using the consol-jars jar.
 bdd_deploy_local_consol_jars:
-	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME) \
+	$(JAVA) -cp ....$(CONSOL_JARS_NAME) \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
