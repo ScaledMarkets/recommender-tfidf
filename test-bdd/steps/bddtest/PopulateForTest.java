@@ -15,6 +15,8 @@ public class PopulateForTest {
 	/*
 	 * MySql command reference:
 	 *	http://www.pantz.org/software/mysql/mysqlcommands.html
+	 *	On Mac, mysql shell is at /usr/local/mysql-shell/bin/mysqlsh
+	 *		alias mysql=/usr/local/mysql-shell/bin/mysqlsh
 	 */
 	public static void main(String[] args) throws Exception {
 		
@@ -22,7 +24,7 @@ public class PopulateForTest {
 		dataSource.setServerName("127.0.0.1");
 		dataSource.setPort(3306);
 		dataSource.setDatabaseName("test");
-		dataSource.setUser("test");
+		dataSource.setUser("root");
 		dataSource.setPassword("test");
 
 		// Clear database and populate it.
@@ -32,7 +34,7 @@ public class PopulateForTest {
 			con = dataSource.getConnection();
 			stmt = con.createStatement();
 			
-			stmt.executeUpdate("TRUNCATE TABLE UserPrefs");
+			stmt.executeUpdate("TRUNCATE TABLE `UserPrefs`");
 			
 			Object[][] data = {
 			

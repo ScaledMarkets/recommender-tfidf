@@ -26,6 +26,8 @@ services:
     ports:
       - 3306:3306
     restart: always
+    
+    # Ref: https://stackoverflow.com/questions/38504257/mysql-scripts-in-docker-entrypoint-initdb-are-not-executed
     volumes:
       - "dbdata:/var/lib/mysql"
       - "dbcreate:/docker-entrypoint-initdb.d"

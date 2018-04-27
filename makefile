@@ -137,11 +137,12 @@ copydeps: $(scratch_dir)
 # because it is unclear which SparkJava classes are the root classes, and so
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
-	java -cp .:$(JARCON_ROOT):$(CDA_ROOT)/lib/* com.cliffberg.jarcon.JarConsolidator \
-		"$(jar_dir)/$(APP_JAR_NAME):$(scratch_dir)/jars/*" \
-		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
-		$(jar_dir)/$(CONSOL_JARS_NAME) \
-		"1.0.0" "Cliff Berg"
+	java -cp $(JARCON_ROOT):$(CDA_ROOT)/lib/*:$(JOPT_SIMPLE) com.cliffberg.jarcon.JarConsolidator \
+		--jarPath="$(jar_dir)/$(APP_JAR_NAME):$(MYSQL_DRIVER):$(scratch_dir)/jars/*" \
+		--rootClasses=scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		--properties=com/mysql/jdbc/LocalizedErrorMessages.properties \
+		--targetJarPath=$(jar_dir)/$(CONSOL_JARS_NAME) \
+		--manifestVersion="1.0.0" --createdBy="Cliff Berg"
 
 # Build the user similarity recommender container image.
 
@@ -193,6 +194,7 @@ start_mysql:
 stop_mysql:
 	docker stop mysql
 	docker rm mysql
+	docker volume rm testbdd_dbdata
 
 showdeps_test:
 	${MVN} -f pom-bdd.xml dependency:build-classpath
