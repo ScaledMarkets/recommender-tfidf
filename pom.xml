@@ -13,9 +13,10 @@
 
 	<modelVersion>4.0.0</modelVersion>
 	
-	<groupId>com.scaledmarkets.recommenders</groupId>
-	<artifactId>usersimrec</artifactId>
+	<groupId>com.scaledmarkets.recommender-tfidf</groupId>
+	<artifactId>tfidf</artifactId>
 	<version>1.0</version>
+	<packaging>jar</packaging>
 	
 	<properties>
 		<JarDir>${env.jar_dir}</JarDir>
@@ -24,6 +25,15 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<junit.version>4.11</junit.version>
 	</properties>
+	
+	<modules>
+		
+		<module>service</module>
+		<module>messages</module>
+		<module>test-bdd</module>
+		<module>test-unit</module>
+	
+	</modules>
 	
 	<repositories>
 	
@@ -66,69 +76,8 @@
 			</snapshots>
 		</repository>
 		
-		<!-- For local dependencies. -->
-		<repository>
-			<id>Local</id>
-			<url>file://${JarDir}</url>		
-		</repository>
-		
 	</repositories>
-	
-	<dependencies>
-	
-		<dependency>
-			<groupId>mysql</groupId>
-			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.6</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.sparkjava</groupId>
-			<artifactId>spark-core</artifactId>
-			<version>2.5</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
-			<version>2.8.2</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.mahout</groupId>
-			<artifactId>mahout-math</artifactId>
-			<version>0.13.0</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.mahout</groupId>
-			<artifactId>mahout-core</artifactId>
-			<version>0.9</version>
-		</dependency>
-		
-		<dependency>
-			<groupId>org.apache.mahout</groupId>
-			<artifactId>mahout-integration</artifactId>
-			<version>0.13.0</version>
-		</dependency>
-	
-		<!-- Local repo dependency: the message types used by the recommender service. -->
-		<dependency>
-			<groupId>${env.GROUPNAME}</groupId>
-			<artifactId>${env.PROJECTNAME}-messages</artifactId>
-			<version>${env.VERSION}</version>
-		</dependency>
-	
-		<!-- Needed for unit tests: -->
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>4.11</version>
-			<scope>test</scope>
-		</dependency>
-		
-	</dependencies>
-	
+
 	<build>
 	
 		<sourceDirectory>${env.JAVASRCDIR}</sourceDirectory>
@@ -160,22 +109,6 @@
 				</configuration>
 			</plugin>
 			
-			<!-- Compiler -->
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.7.0</version>
-				<configuration>
-					<fork>true</fork>
-					<verbose>true</verbose>
-					<compilerArguments>
-						<Xmaxerrs>${env.maxerrs}</Xmaxerrs>
-					</compilerArguments>
-					<source>${env.JavaVersion}</source>
-					<target>${env.JavaVersion}</target>
-				</configuration>
-			</plugin>
-			
 			<!-- Needed for unit tests: -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
@@ -187,8 +120,18 @@
 				</configuration>
 			</plugin>
 			
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-javadoc-plugin</artifactId>
+				<version>3.0.0</version>
+				<configuration>
+					<aggregate>true</aggregate>
+					<outputDirectory>${javadoc_dir}</outputDirectory>
+				</configuration>
+			</plugin>
+			
 		</plugins>
 		
 	</build>
-	
+
 </project>

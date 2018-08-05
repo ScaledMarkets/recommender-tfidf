@@ -1,4 +1,4 @@
-package scaledmarkets.recommenders.mahout;
+package com.scaledmarkets.recommenders.mahout;
 
 // https://github.com/apache/mahout/tree/master/mr/src/main/java/org/apache/mahout/cf/taste/recommender
 import org.apache.mahout.cf.taste.recommender.RecommendedItem;
@@ -36,6 +36,8 @@ import javax.sql.DataSource;
 //import com.mysql.cj.jdbc.MysqlDataSource;
 import com.mysql.jdbc.jdbc2.optional.MysqlConnectionPoolDataSource;
 
+import static spark.Spark.initExceptionHandler;
+import static spark.Spark.init;
 import static spark.Spark.get;
 import static spark.Spark.port;
 import spark.ResponseTransformer;
@@ -137,6 +139,12 @@ public class UserSimilarityRecommender {
 		recommender =
 			new GenericUserBasedRecommender(model, neighborhood, userSimilarity);
 		recommender = new CachingRecommender(recommender);
+		
+		initExceptionHandler((ex) -> {
+			ex.printStackTrace();
+			//LOG.error("ignite failed", ex);
+		});
+		init();
 				
 		// Install REST handler that invokes our recommender.
 		// For info on SparkJava Web service framework (not related to Apache Spark):
@@ -195,6 +203,8 @@ public class UserSimilarityRecommender {
 			}
 			
 		}, new JsonTransformer());  // render message as JSON
+		
+		System.out.println("Service ready...");
 	}
 	
 	private DataModel model;

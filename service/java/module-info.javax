@@ -1,0 +1,3 @@
+module recommender {
+	exports scaledmarkets.recommenders.mahout;
+}

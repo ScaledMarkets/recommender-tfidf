@@ -1,0 +1,97 @@
+<project>
+
+	<modelVersion>4.0.0</modelVersion>
+	
+	<artifactId>service</artifactId>
+	<version>0.1</version>
+	<name>task_runtime</name>
+	<packaging>jar</packaging>
+	
+	<parent>
+		<groupId>com.scaledmarkets.recommender-tfidf</groupId>
+		<artifactId>tfidf</artifactId>
+		<version>0.1</version>
+	</parent>
+	
+	<dependencies>
+	
+		<dependency>
+			<groupId>mysql</groupId>
+			<artifactId>mysql-connector-java</artifactId>
+			<version>5.1.6</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.sparkjava</groupId>
+			<artifactId>spark-core</artifactId>
+			<version>2.7.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>1.7.21</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>com.google.code.gson</groupId>
+			<artifactId>gson</artifactId>
+			<version>2.8.2</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.mahout</groupId>
+			<artifactId>mahout-math</artifactId>
+			<version>0.13.0</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.mahout</groupId>
+			<artifactId>mahout-core</artifactId>
+			<version>0.9</version>
+		</dependency>
+		
+		<dependency>
+			<groupId>org.apache.mahout</groupId>
+			<artifactId>mahout-integration</artifactId>
+			<version>0.13.0</version>
+		</dependency>
+	
+		<!-- Local repo dependency: the message types used by the recommender service. -->
+		<dependency>
+			<groupId>com.scaledmarkets.recommenders</groupId>
+			<artifactId>messages</artifactId>
+			<version>0.1</version>
+		</dependency>
+	
+		<!-- Needed for unit tests: -->
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+			<scope>test</scope>
+		</dependency>
+		
+	</dependencies>
+	
+	<build>
+	
+		<sourceDirectory>java</sourceDirectory>
+		<directory>maven</directory>
+		
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<version>3.7.0</version>
+				<configuration>
+					<compilerArguments>
+						<Xmaxerrs>5</Xmaxerrs>
+					</compilerArguments>
+				</configuration>
+			</plugin>
+
+		</plugins>
+		
+	</build>
+
+</project>

@@ -29,14 +29,14 @@ export CPU_ARCH:=$(shell uname -s | tr '[:upper:]' '[:lower:]')_amd64
 export APP_JAR_NAME := $(PROJECTNAME)-$(VERSION).jar
 export MESSAGES_JAR_NAME := $(PROJECTNAME)-messages-$(VERSION).jar
 export CONSOL_JARS_NAME := $(PROJECTNAME)-consol-jars-$(VERSION).jar
-export ImageName := scaledmarkets/$(PROJECTNAME)-usersimrec
+export ImageName := scaledmarkets/$(PROJECTNAME)-tfidf
 export unit_test_package := unittest
 export bdd_test_package := bddtest
 
 # Locations of generated artifacts: --------------------------------------------
 
-export MAVENBUILDDIR := $(PROJECTROOT)/maven/usersimrec
-export IMAGEBUILDDIR := $(PROJECTROOT)/images/usersimrec
+export MAVENBUILDDIR := $(PROJECTROOT)/maven/tfidf
+export IMAGEBUILDDIR := $(PROJECTROOT)/images/tfidf
 export unit_test_build_dir := $(PROJECTROOT)/test-unit/classes
 export bdd_test_maven_build_dir := $(PROJECTROOT)/test-bdd/maven
 export message_build_dir := $(PROJECTROOT)/shared/classes
@@ -50,7 +50,7 @@ export JAVA_HOME := $(MVN_JAVA_HOME)
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: all
-.PHONY: clean info compile compilepop compilesearch compile pop_jar search_jar jar image
+.PHONY: clean manifest info compile compilepop compilesearch compile pop_jar search_jar jar image
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
@@ -58,77 +58,31 @@ export JAVA_HOME := $(MVN_JAVA_HOME)
 
 all: image
 
-# Compile Java files.
-
 $(MAVENBUILDDIR):
 	mkdir -p $(MAVENBUILDDIR)
 
-$(message_build_dir):
-	mkdir -p $(message_build_dir)
-
-compile: $(MAVENBUILDDIR) jar_messages
-	$(MVN) compile --update-snapshots --errors
-
-compile_messages: $(message_build_dir)
-	$(JAVAC) -Xmaxerrs $(maxerrs) \
-		-d $(message_build_dir) \
-		$(JAVASRCDIR)/scaledmarkets/recommenders/messages/Messages.java
-
-compile_unit_tests:
-	$(MVN) test-compile
-
-compile_bdd_tests: #$(test_build_dir) compile_messages
-	$(MVN) -f pom-bdd.xml -U -e compile
-
-# Create the directories into which the jars will be created.
-
-$(scratch_dir):
+$(scratch_dir)
 	mkdir -p $(scratch_dir)
 
-$(jar_dir):
-	mkdir -p $(jar_dir)
+build: $(MAVENBUILDDIR) manifest
+	$(MVN) clean install
 
-# Create the user similarity recommender jar.
-
-jar_app: $(jar_dir) #compile
-	echo "Main-Class: $(main_class)" > UserSimRecManifest
-	echo "Specification-Title: $(PRODUCT_NAME) User Similarity Recommender" >> UserSimRecManifest
-	echo "Specification-Version: $(VERSION)" >> UserSimRecManifest
-	echo "Specification-Vendor: $(ORG)" >> UserSimRecManifest
-	echo "Implementation-Title: $(main_class)" >> UserSimRecManifest
-	echo "Implementation-Vendor: $(ORG)" >> UserSimRecManifest
-	jar cfm $(jar_dir)/$(APP_JAR_NAME) \
-		UserSimRecManifest -C $(MAVENBUILDDIR)/classes scaledmarkets
-	rm UserSimRecManifest
-
-# Create jar file for the messages that are sent by the recommender. This is the
-# public interface of the application.
-jar_messages: $(jar_dir) #compile_messages
-	echo "Specification-Title: $(PRODUCT_NAME) Message Types" >> UserSimRecMessagesManifest
-	echo "Specification-Version: $(VERSION)" >> UserSimRecMessagesManifest
-	echo "Specification-Vendor: $(ORG)" >> UserSimRecMessagesManifest
-	echo "Implementation-Title: $(main_class)" >> UserSimRecMessagesManifest
-	echo "Implementation-Vendor: $(ORG)" >> UserSimRecMessagesManifest
-	jar cfm $(jar_dir)/$(MESSAGES_JAR_NAME) \
-		UserSimRecMessagesManifest -C $(message_build_dir) scaledmarkets
-	rm UserSimRecMessagesManifest
-	# Install in the local repository so that the maven compile and the bdd test
-	# can find it.
-	$(MVN) install:install-file -Dfile=$(jar_dir)/$(MESSAGES_JAR_NAME) -DgroupId=$(GROUPNAME) \
-		-DartifactId=$(PROJECTNAME)-messages -Dversion=$(VERSION) -Dpackaging=jar
 
 # Identify all of the dependent Jars that will be needed to deploy.
 
-showdeps:
-	${MVN} dependency:build-classpath
+getdeps:
+	$(MVN) dependency:build-classpath --projects service | tail -n $(mvn_spaces) | head -n 1 | tr ":" "\n" > service_jars.txt
+	$(MVN) dependency:build-classpath --projects messages | tail -n $(mvn_spaces) | head -n 1 | tr ":" "\n" > messages_jars.txt
 
-copydeps: $(scratch_dir)
+showdeps: getdeps
+	sort -u service_jars.txt messages_jars.txt
+
+copydeps: $(scratch_dir) getdeps
 	cp $(jar_dir)/$(APP_JAR_NAME) $(scratch_dir)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
-	mkdir -p $(scratch_dir)/jars
 	{ \
-	cp=`${MVN} dependency:build-classpath | tail -n 7 | head -n 1 | tr ":" "\n"` ; \
+	cp=`sort -u service_jars.txt messages_jars.txt` ; \
 	for path in $$cp; do cp $$path $$scratch_dir/jars; done; \
 	}
 
@@ -139,7 +93,7 @@ copydeps: $(scratch_dir)
 consolidate:
 	java -cp $(JARCON_ROOT):$(CDA_ROOT)/lib/*:$(JOPT_SIMPLE) com.cliffberg.jarcon.JarConsolidator \
 		--jarPath="$(jar_dir)/$(APP_JAR_NAME):$(MYSQL_DRIVER):$(scratch_dir)/jars/*" \
-		--rootClasses=scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
+		--rootClasses=scaledmarkets.recommenders.mahout.UserSimilarityRecommender,com.mysql.jdbc.log.StandardLogger,com.mysql.jdbc.StandardSocketFactory \
 		--properties=com/mysql/jdbc/LocalizedErrorMessages.properties \
 		--targetJarPath=$(jar_dir)/$(CONSOL_JARS_NAME) \
 		--manifestVersion="1.0.0" --createdBy="Cliff Berg"
@@ -164,11 +118,6 @@ image: $(IMAGEBUILDDIR)
 	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	sudo docker push $(ImageName)
 	sudo docker logout
-
-# Compile the test source files.
-
-$(test_build_dir):
-	mkdir -p $(test_build_dir)
 
 # Run unit tests.
 unit_test: #compile_unit_tests jar
@@ -196,9 +145,6 @@ stop_mysql:
 	docker rm mysql
 	docker volume rm testbdd_dbdata
 
-showdeps_test:
-	${MVN} -f pom-bdd.xml dependency:build-classpath
-
 # Fill the database with test data.
 populate_test:
 	{ \
@@ -209,7 +155,7 @@ populate_test:
 
 # Deploy for running behavioral tests, using the consol-jars jar.
 bdd_deploy_local_consol_jars:
-	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME) \
+	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME):$(SLF4J) \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
@@ -243,20 +189,20 @@ bdd_deploy: #start_mysql populate_test
 		NEIGHBORHOOD_THRESHOLD=0.1 \
 		docker-compose up -d
 
-showbdddeps:
-	${MVN} -f pom-bdd.xml dependency:tree
-	#${MVN} -f pom-bdd.xml dependency:tree -Dincludes=jersey:jersey-client:1.9
+# Display the dependencies of the behavioral tests.
+showdeps_test:
+	$(MVN) dependency:build-classpath
 
 # Run BDD tests.
-bdd: #compile_bdd_tests bdd_deploy
+bdd:
 	# Use maven to determine the classpath for the test program, and then run the test program.
 	{ \
-	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 8 | head -n 1`; \
+	cp=`${MVN} -f pom-bdd.xml dependency:build-classpath | tail -n 7 | head -n 1`; \
 	echo $$cp > bdd_jars.txt; \
 	$$JAVA -cp $$bdd_test_maven_build_dir/classes:$$jar_dir/$$MESSAGES_JAR_NAME:$$cp \
 		cucumber.api.cli.Main \
 		--glue $(bdd_test_package) $(bdd_test_dir)/features \
-		--tags @done --tags @usersimrec --tags @database; \
+		--tags @done --tags @tfidf --tags @database; \
 	}
 
 test: unit_test bdd

@@ -1,4 +1,4 @@
-package scaledmarkets.recommenders.messages;
+package com.scaledmarkets.recommenders.messages;
 
 public class Messages {
 	
