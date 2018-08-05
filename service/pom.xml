@@ -4,7 +4,7 @@
 	
 	<artifactId>service</artifactId>
 	<version>0.1</version>
-	<name>task_runtime</name>
+	<name>service</name>
 	<packaging>jar</packaging>
 	
 	<parent>
@@ -59,7 +59,7 @@
 	
 		<!-- Local repo dependency: the message types used by the recommender service. -->
 		<dependency>
-			<groupId>com.scaledmarkets.recommenders</groupId>
+			<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 			<artifactId>messages</artifactId>
 			<version>0.1</version>
 		</dependency>
@@ -78,6 +78,8 @@
 	
 		<sourceDirectory>java</sourceDirectory>
 		<directory>maven</directory>
+		
+		<plugins>
 		
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

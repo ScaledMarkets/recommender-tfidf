@@ -1,8 +1,8 @@
 package bddtest;
 
-import scaledmarkets.recommenders.messages.Messages.Message;
-import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
-import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
+import com.scaledmarkets.recommenders.messages.Messages.Message;
+import com.scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
+import com.scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
 
 import cucumber.api.Format;
 import cucumber.api.java.Before;

@@ -45,9 +45,9 @@ import spark.Request;
 import spark.Response;
 import com.google.gson.Gson;
 
-import scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
-import scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
-import scaledmarkets.recommenders.messages.Messages.ErrorMessage;
+import com.scaledmarkets.recommenders.messages.Messages.NoRecommendationMessage;
+import com.scaledmarkets.recommenders.messages.Messages.RecommendationMessage;
+import com.scaledmarkets.recommenders.messages.Messages.ErrorMessage;
 
 /**
  * Obtain a recommendation for a specified user, based on the user's similarity

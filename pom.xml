@@ -2,8 +2,6 @@
 	Do not run this pom file directly. It must be run from the makefile, because
 	the makefile sets shell variables that are used by this pom.
 
-	This pom builds the application and unit tests, but does not build the behavioral tests.
-
 	This pom does not rely on a maven configuration (settings.xml).
 	
 	This pom overrides the standard compiler source and target locations.
@@ -15,11 +13,10 @@
 	
 	<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 	<artifactId>tfidf</artifactId>
-	<version>1.0</version>
-	<packaging>jar</packaging>
+	<version>0.1</version>
+	<packaging>pom</packaging>
 	
 	<properties>
-		<JarDir>${env.jar_dir}</JarDir>
 		<maven.compiler.source>${JavaVersion}</maven.compiler.source>
 		<maven.compiler.target>${JavaVersion}</maven.compiler.target>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

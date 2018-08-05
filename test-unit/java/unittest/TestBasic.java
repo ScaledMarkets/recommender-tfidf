@@ -1,6 +1,6 @@
 package unittest;
 
-import scaledmarkets.recommenders.mahout.UserSimilarityRecommender;
+import com.scaledmarkets.recommenders.mahout.UserSimilarityRecommender;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -31,32 +31,12 @@ public class TestBasic extends TestBase {
 	private DataModel model;
 	private List<RecommendedItem> recommendations;
 	
+	public static void main(String[] args) throws Exception {
+		(new TestBasic()).testBasic();
+	}
+	
 	public TestBasic()
 	{
-	}
-	
-	@BeforeClass
-	public static void setupClass()
-	{
-		System.out.println("Setting up class");
-	}
-	
-	@AfterClass
-	public static void teardownClass()
-	{
-		System.out.println("Tearing down class");
-	}
-	
-	@Before
-	public void setup()
-	{
-		System.out.println("Setting up");
-	}
-	
-	@After
-	public void teardown()
-	{
-		System.out.println("Tearing down");
 	}
 	
 	// Scenario: Basic functionality
@@ -69,13 +49,15 @@ public class TestBasic extends TestBase {
 	}
 	
 	// Scenario: All users the same
+	/*
 	@Test
 	public void testAllUsersSame() throws Exception {
 
 		given_ten_users_with_identical_item_preferences();
-		when_i_request_two_recommendations_using_user_similarity(10L);
+		....when_i_request_two_recommendations_using_user_similarity(10L);
 		then_i_obtain_two_recommendations();
 	}
+	*/
 
 	// From example at,
 	//	https://mahout.apache.org/users/recommender/userbased-5-minutes.html

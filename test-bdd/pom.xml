@@ -4,12 +4,12 @@
 	
 	<artifactId>test-bdd</artifactId>
 	<version>0.1</version>
-	<name>test</name>
+	<name>test-bdd</name>
 	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>com.scaledmarkets.recommender-tfidf</groupId>
-		<artifactId>test-bdd</artifactId>
+		<artifactId>tfidf</artifactId>
 		<version>0.1</version>
 	</parent>
 	
