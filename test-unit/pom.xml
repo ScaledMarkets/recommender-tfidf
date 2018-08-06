@@ -3,14 +3,14 @@
 	<modelVersion>4.0.0</modelVersion>
 	
 	<artifactId>test-unit</artifactId>
-	<version>${env.VERSION}</version>
+	<version>0.1</version>
 	<name>test-unit</name>
 	<packaging>jar</packaging>
 
 	<parent>
 		<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 		<artifactId>tfidf</artifactId>
-		<version>${env.VERSION}</version>
+		<version>0.1</version>
 	</parent>
 	
 	<dependencies>
@@ -18,13 +18,13 @@
 		<dependency>
 			<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 			<artifactId>service</artifactId>
-			<version>${env.VERSION}</version>
+			<version>0.1</version>
 		</dependency>
 		
 		<dependency>
 			<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 			<artifactId>messages</artifactId>
-			<version>${env.VERSION}</version>
+			<version>0.1</version>
 		</dependency>
 
 	</dependencies>

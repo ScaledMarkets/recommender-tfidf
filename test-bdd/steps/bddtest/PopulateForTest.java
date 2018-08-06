@@ -32,10 +32,24 @@ public class PopulateForTest {
 		Statement stmt = null;
 		try {
 			con = dataSource.getConnection();
+			
+			try {
+				stmt = con.createStatement();
+				stmt.executeUpdate("DROP TABLE `UserPrefs`");
+			} catch (Exception ex) {
+				
+			}
+			
 			stmt = con.createStatement();
-			
-			stmt.executeUpdate("TRUNCATE TABLE `UserPrefs`");
-			
+			stmt.executeUpdate(
+				"CREATE TABLE UserPrefs (" +
+				"UserID BIGINT NOT NULL, " +
+				"ItemID BIGINT NOT NULL, " +
+				"Preference FLOAT NOT NULL, " +
+				"PRIMARY KEY (UserID, ItemID), " +
+				"INDEX (UserID), " +
+				"INDEX (ItemID))");
+				
 			Object[][] data = {
 			
 				{1,100,3.5},
@@ -88,6 +102,7 @@ public class PopulateForTest {
 			
 			};
 			
+			stmt = con.createStatement();
 			insertIntoUserPrefs(stmt, data);
 			
 		} finally {

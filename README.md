@@ -13,9 +13,7 @@ All build configuration is set in env.linux (or env.mac, for my personal Mac),
 and the Maven toolchain configuration file toolchains-linux.xml
 (or toolchains-mac.xml for my personal Mac).
 
-The version number is set in the makefile - nothing else in the makefile should need
-to be changed. The POM files should also not need to be chanaged: they receive the
-version number from the environment.
+The version number is set in the makefile but must be set in each POM as well.
 
 The makefile attempts to push the image to Dockerhub. To enable that, Dockerhub
 credentials must be set through these two environment variables:
@@ -45,9 +43,9 @@ out of date automatically is sometimes difficult.
 There are two test suites: a unit test suite and a behavioral test suite. Each is
 defined as a separate Maven module. (Yes, this is unconventional for unit tests.)
 
-To build the image, Docker is required, and so one should perform the build in
-a Linux system. I have noticed difficulties running the MySQL container in Docker
+To build the image, Docker is required, and so one should perform that part of
+the build in a Linux system. I have noticed difficulties running the MySQL container in Docker
 under the Mac version of Docker, so I recommend booting a Linux VM and running the
-tests in that - perhaps doing the whole build there.
-
+tests in that - perhaps doing the whole build there. The Vagrantfile maps the output
+directories so they are available from both the Mac and a VM started with Vagrant.
 

@@ -60,5 +60,8 @@ Vagrant.configure(2) do |config|
 	
 	config.vm.provision "shell",
 		inline: "sudo yum install -y maven"
+	
+	config.vm.provision "shell",
+		inline: "sudo usermod -aG docker vagrant"
 
 end

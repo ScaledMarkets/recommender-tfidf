@@ -11,4 +11,15 @@
 			<jdkHome>/home/vagrant/java-se-9-ri/jdk-9</jdkHome>
 		</configuration>
 	</toolchain>
+	<toolchain>
+		<type>jdk</type>
+		<provides>
+			<version>1.8</version>
+			<vendor>oracle</vendor>
+			<id>jdk8</id>
+		</provides>
+		<configuration>
+			<jdkHome>/etc/alternatives/java_sdk_1.8.0</jdkHome>
+		</configuration>
+	</toolchain>
 </toolchains>

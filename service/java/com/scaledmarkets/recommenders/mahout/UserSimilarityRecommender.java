@@ -116,6 +116,7 @@ public class UserSimilarityRecommender {
 		// To use HDFS:
 		// https://mahout.apache.org/users/classification/bayesian.html
 		// https://chimpler.wordpress.com/2013/02/20/playing-with-the-mahout-recommendation-engine-on-a-hadoop-cluster/
+		// http://mahout.apache.org/docs/0.13.0/api/docs/mahout-integration/org/apache/mahout/cf/taste/impl/model/jdbc/MySQLJDBCDataModel.html
 		JDBCDataModel model = new MySQLJDBCDataModel(dataSource,
 			databaseTableName,
 			"UserID",

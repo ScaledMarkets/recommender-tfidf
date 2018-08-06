@@ -159,9 +159,11 @@ stop_mysql:
 # Fill the database with test data.
 populate_test:
 	{ \
-	cp=`${MVN} dependency:build-classpath --projects test-bdd | tail -n 8 | head -n 1`; \
+	JAVA_HOME=$(TARGET_JAVA_HOME) $(MVN) dependency:build-classpath --projects test-bdd > test_deps.txt; \
+	cat test_deps.txt; \
+	cp=`cat test_deps.txt | tail -n $(mvn_spaces) | head -n 1`; \
 	echo cp=$$cp; \
-	${JAVA} -cp $$bdd_test_maven_build_dir/classes:$$cp bddtest.PopulateForTest; \
+	JAVA_HOME=$(TARGET_JAVA_HOME) $(JAVA) -cp "$(MavenRepository)/com/scaledmarkets/recommender-tfidf/test-bdd/$(VERSION)/test-bdd-$(VERSION).jar:$$cp" bddtest.PopulateForTest; \
 	}
 
 # Deploy for running behavioral tests, using the consol-jars jar.
