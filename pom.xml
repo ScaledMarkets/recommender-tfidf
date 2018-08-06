@@ -13,7 +13,7 @@
 	
 	<groupId>com.scaledmarkets.recommender-tfidf</groupId>
 	<artifactId>tfidf</artifactId>
-	<version>0.1</version>
+	<version>${env.VERSION}</version>
 	<packaging>pom</packaging>
 	
 	<properties>

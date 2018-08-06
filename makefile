@@ -1,29 +1,28 @@
 # This file should not need to be edited, except to update the version number.
-# Build configurations are set in an environment file, which is env.mac by default.
-# To use a different environment configuration, run this makefile as,
-# 	make env=<other-env-file>
-# where <other-env-file> is a file that defines the required environment variables,
-# just as env.mac does. For example, to use the env.vm environment configuration,
-# use this command:
-# 	make env=env.vm
+# Build configurations are set in an environment file, env.mac or env.linux.
 
-ifdef env
-	include $(env)
-else
+export os := $(shell uname)
+
+ifeq ($(os),Darwin)
 	include env.mac
 endif
+
+ifeq ($(os),Linux)
+	include env.linux
+endif
+
 
 # Names: -----------------------------------------------------------------------
 
 export VERSION := 0.1
+export ImageName := scaledmarkets/tfidf
+export ORG := Scaled Markets
 export PROJECTROOT := $(shell pwd)
 export PRODUCTNAME := TF-IDF Recommender
-export ORG := Scaled Markets
 export main_class := com.scaledmarkets.recommenders.mahout.UserSimularityRecommender
 export SERVICE_JAR_NAME := service-$(VERSION).jar
 export MESSAGES_JAR_NAME := messages-$(VERSION).jar
 export CONSOL_JARS_NAME := tfidf-consol-jars-$(VERSION).jar
-export ImageName := scaledmarkets/tfidf
 export unit_test_package := unittest
 export bdd_test_package := bddtest
 
@@ -40,14 +39,15 @@ export JAVA_HOME := $(MVN_JAVA_HOME)
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: all
-.PHONY: all build getdeps showdeps copydeps consolidate copy_to_imagebuilddir image getdeps_unittest showdeps_unittest unit_test prep_mysql start_mysql stop_mysql populate_test bdd_deploy_local_consol_jars bdd_deploy_local bdd_deploy getdeps_bddtest showdeps_bddtest bdd test clean info
-
+.PHONY: regimage consolimage build getdeps showdeps copydeps consolidate copy_consol_jar_to_imagebuilddir copy_all_jars_to_imagebuilddir image getdeps_unittest showdeps_unittest unit_test prep_mysql start_mysql stop_mysql populate_test bdd_deploy_local_consol_jars bdd_deploy_local bdd_deploy getdeps_bddtest showdeps_bddtest bdd test clean info
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
 .SUFFIXES:
 
-all: build copydeps consolidate copy_to_imagebuilddir image
+# To build an image, choose one of these. These do not run tests.
+regimage: build copydeps copy_all_jars_to_imagebuilddir image
+consolimage: build copydeps consolidate copy_consol_jar_to_imagebuilddir image
 
 # Compile all Java source code.
 build:
@@ -80,15 +80,15 @@ showdeps: getdeps
 
 # Copy the jars needed by the remote service.
 copydeps: getdeps
-	rm -r -f $(scratch_dir)
-	mkdir -p $(scratch_dir)
-	cp $(MavenProjectPath)/service/$(VERSION)/service-$(VERSION).jar $(scratch_dir)
-	cp $(MavenProjectPath)/messages/$(VERSION)/messages-$(VERSION).jar $(scratch_dir)
+	rm -r -f $(all_jars_dir)
+	mkdir -p $(all_jars_dir)
+	cp $(MavenProjectPath)/service/$(VERSION)/service-$(VERSION).jar $(all_jars_dir)
+	cp $(MavenProjectPath)/messages/$(VERSION)/messages-$(VERSION).jar $(all_jars_dir)
 	# Copy external jars that the runtime needs.
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	{ \
 	cp=`sort -u service_jars.txt messages_jars.txt` ; \
-	for path in $$cp; do cp $$path $$scratch_dir/jars; done; \
+	for path in $$cp; do cp $$path $$consol_jar_dir; done; \
 	}
 
 # Create a jar file that contains only the classes that are actually needed to
@@ -97,20 +97,28 @@ copydeps: getdeps
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
 	java -cp $(JARCON_ROOT):$(CDA_ROOT)/lib/*:$(JOPT_SIMPLE) com.cliffberg.jarcon.JarConsolidator \
-		--jarPath="$(jar_dir)/$(SERVICE_JAR_NAME):$(MYSQL_DRIVER):$(scratch_dir)/jars/*" \
+		--jarPath="$(MYSQL_DRIVER):$(all_jars_dir)/*" \
 		--rootClasses=$(main_class),com.mysql.jdbc.log.StandardLogger,com.mysql.jdbc.StandardSocketFactory \
 		--properties=com/mysql/jdbc/LocalizedErrorMessages.properties \
 		--targetJarPath=$(Transient)/$(CONSOL_JARS_NAME) \
 		--manifestVersion="1.0.0" --createdBy="Cliff Berg"
 
-# Place all the artifacts needed to build the image in a clean directory.
-copy_to_imagebuilddir:
+# Place all the artifacts needed to build a consolidated image in a clean directory.
+# We explicitly copy SparkJava because it is not properly consolidated by jarcon.
+copy_consol_jar_to_imagebuilddir:
 	rm -r -f $(ImageBuildDir)
 	mkdir -p $(ImageBuildDir)
-	cp $(Transient)/$(CONSOL_JARS_NAME) $(ImageBuildDir)
-	cp $(Transient)/$(APP_JAR_NAME) $(ImageBuildDir)
+	cp $(consol_jar_dir)/$(CONSOL_JARS_NAME) $(ImageBuildDir)
+	cp $(MavenRepository)/com/sparkjava/spark-core/2.5/spark-core-2.5.jar $(ImageBuildDir)
 	cp Dockerfile $(ImageBuildDir)
-	
+
+# Place all the artifacts needed to build a regular image in a clean directory.
+copy_all_jars_to_imagebuilddir:
+	rm -r -f $(ImageBuildDir)
+	mkdir -p $(ImageBuildDir)
+	cp $(all_jars_dir)/* $(ImageBuildDir)
+	cp Dockerfile $(ImageBuildDir)
+
 # Build the user similarity recommender container image.
 image:
 	# Check that dockerhub credentials are set.
@@ -155,7 +163,7 @@ populate_test:
 
 # Deploy for running behavioral tests, using the consol-jars jar.
 bdd_deploy_local_consol_jars:
-	$(JAVA) -cp $(jar_dir)/$(CONSOL_JARS_NAME):$(SLF4J) \
+	$(JAVA) -cp $(consol_jar_dir)/$(CONSOL_JARS_NAME):$(SLF4J) \
 		scaledmarkets.recommenders.mahout.UserSimilarityRecommender \
 		test localhost 3306 UserPrefs test test 8080 0.1 verbose
 
