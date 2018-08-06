@@ -5,18 +5,15 @@ FROM jolokia/alpine-jre-8
 #RUN yum install -y java-1.8.0-openjdk
 
 # Create directories:
-RUN mkdir /recommender-tfidf
 RUN mkdir /jars
-
-# Add the recommender:
-ADD ["${APP_JAR_NAME}", "/recommender-tfidf/"]
+RUN mkdir /recommender-tfidf
 
 # Add jars needed by recommender:
-ADD ["jars/*.jar", "/jars/"]
+ADD ["*.jar", "/jars/"]
 
 # Set working directory:
 WORKDIR /recommender-tfidf/
 
 # Run the command that starts the recommender service.
 # Command arguments are provided by the docker-compose file 'command'.
-ENTRYPOINT ["java", "-cp", "/recommender-tfidf/*:/jars/*", "com.scaledmarkets.recommenders.mahout.UserSimilarityRecommender"]
+ENTRYPOINT ["java", "-cp", "/jars/*", "com.scaledmarkets.recommenders.mahout.UserSimilarityRecommender"]

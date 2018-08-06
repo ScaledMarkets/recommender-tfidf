@@ -39,7 +39,7 @@ export JAVA_HOME := $(MVN_JAVA_HOME)
 # Tasks: -----------------------------------------------------------------------
 
 .DEFAULT_GOAL: all
-.PHONY: regimage consolimage build getdeps showdeps copydeps consolidate copy_consol_jar_to_imagebuilddir copy_all_jars_to_imagebuilddir image getdeps_unittest showdeps_unittest unit_test prep_mysql start_mysql stop_mysql populate_test bdd_deploy_local_consol_jars bdd_deploy_local bdd_deploy getdeps_bddtest showdeps_bddtest bdd test clean info
+.PHONY: regimage consolimage build getdeps showdeps copydeps unit_test_consol_jar consolidate copy_consol_jar_to_imagebuilddir copy_all_jars_to_imagebuilddir image getdeps_unittest showdeps_unittest unit_test prep_mysql start_mysql stop_mysql populate_test bdd_deploy_local_consol_jars bdd_deploy_local bdd_deploy getdeps_bddtest showdeps_bddtest bdd test clean info
 .DELETE_ON_ERROR:
 .ONESHELL:
 .NOTPARALLEL:
@@ -88,7 +88,7 @@ copydeps: getdeps
 	# Note: Use 'mvn dependency:build-classpath' to obtain dependencies.
 	{ \
 	cp=`sort -u service_jars.txt messages_jars.txt` ; \
-	for path in $$cp; do cp $$path $$consol_jar_dir; done; \
+	for path in $$cp; do cp $$path $$all_jars_dir; done; \
 	}
 
 # Create a jar file that contains only the classes that are actually needed to
@@ -96,12 +96,16 @@ copydeps: getdeps
 # because it is unclear which SparkJava classes are the root classes, and so
 # our computation would be suspect, and spark core is only 134K.
 consolidate:
-	java -cp $(JARCON_ROOT):$(CDA_ROOT)/lib/*:$(JOPT_SIMPLE) com.cliffberg.jarcon.JarConsolidator \
+	$(JAVA) -cp $(JARCON_ROOT):$(CDA_ROOT)/lib/*:$(JOPT_SIMPLE) com.cliffberg.jarcon.consolidator.JarConsolidator \
 		--jarPath="$(MYSQL_DRIVER):$(all_jars_dir)/*" \
 		--rootClasses=$(main_class),com.mysql.jdbc.log.StandardLogger,com.mysql.jdbc.StandardSocketFactory \
 		--properties=com/mysql/jdbc/LocalizedErrorMessages.properties \
-		--targetJarPath=$(Transient)/$(CONSOL_JARS_NAME) \
+		--targetJarPath=$(consol_jar_dir)/$(CONSOL_JARS_NAME) \
 		--manifestVersion="1.0.0" --createdBy="Cliff Berg"
+
+unit_test_consol_jar:
+	$(JAVA) -cp $(consol_jar_dir)/$(CONSOL_JARS_NAME):$(MavenRepository)/com/scaledmarkets/recommender-tfidf/test-unit/$(VERSION)/test-unit-$(VERSION).jar \
+		unittest.TestBasic
 
 # Place all the artifacts needed to build a consolidated image in a clean directory.
 # We explicitly copy SparkJava because it is not properly consolidated by jarcon.
@@ -117,15 +121,14 @@ copy_all_jars_to_imagebuilddir:
 	rm -r -f $(ImageBuildDir)
 	mkdir -p $(ImageBuildDir)
 	cp $(all_jars_dir)/* $(ImageBuildDir)
-	cp Dockerfile $(ImageBuildDir)
 
 # Build the user similarity recommender container image.
 image:
 	# Check that dockerhub credentials are set.
 	if [ -z $(DockerhubUserId) ]; then echo "Dockerhub credentials not set"; exit 1; fi
 	# Execute docker build to create an image.
-	APP_JAR_NAME=$(CONSOL_JARS_NAME) sudo docker build \
-		--tag=$(ImageName) $(ImageBuildDir)
+	cp Dockerfile $(ImageBuildDir)
+	sudo docker build --tag=$(ImageName) $(ImageBuildDir)
 	# Push image to dockerhub.
 	sudo docker login -u $(DockerhubUserId) -p $(DockerhubPassword)
 	sudo docker push $(ImageName)

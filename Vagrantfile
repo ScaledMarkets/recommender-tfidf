@@ -13,7 +13,7 @@ Vagrant.configure(2) do |config|
 	# Synced folders.
 	# Note: the host directory containing this Vagrantfile is automatically mapped
 	# to the VM folder /vagrant.
-	config.vm.synced_folder "~/Transient/Recommenders", "/Transient", create: true
+	config.vm.synced_folder "~/Transient/tfidf", "/Transient", create: true
 	
 	# Networking.
 	config.vm.network "forwarded_port", guest: 8080, host: 8080
